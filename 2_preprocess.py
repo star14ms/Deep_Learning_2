@@ -1,4 +1,5 @@
-from common.util import preprocess, time
+from common.util import time
+from common.preprocess import preprocess
 import pickle
 import time as t
 
@@ -48,7 +49,8 @@ if __name__ == '__main__':
 
     print('\n2) 형태소로 분해 중...')
     sentences = [sentence_data[1] for sentence_data in data] if not only_sentences_file else data
-    (corpus, morp_to_id, id_to_morp) = preprocess(sentences, start_time=start_time, sentences_pkl=sentences_pkl)
+    (lang, corpus) = preprocess(sentences, start_time=start_time, sentences_pkl=sentences_pkl)
+    morp_to_id, id_to_morp = lang.word2index, lang.index2word
     print('2) 형태소로 분해 완료! (형태소 종류 수: {})'.format(len(id_to_morp))+ f"\n{time.str_delta(start_time)}")
 
 

@@ -6,9 +6,11 @@ from modules.BotServer import BotServer
 from common.util import generate_words # is_English_exist, 
 import pickle
 
+
 # class EnglishError(Exception):
     # def __init__(self):
     #     super().__init__('영어 감지')
+
 
 def to_client(conn, addr):
     try:

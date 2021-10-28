@@ -59,6 +59,10 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
         # 댓글들 가져오기
         comments = driver.find_elements_by_id(comment_block)
     
+        if len(comments) < 100:
+            print("\r{0} | 오류 | {1}".format(i+1, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..')))
+            continue
+
         # txt파일로 기록
         skip_num = 0
         with open(f'{cmts_txt_name}.txt', 'a', encoding="utf-8") as f: 
