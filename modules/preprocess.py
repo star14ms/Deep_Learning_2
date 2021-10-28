@@ -7,7 +7,7 @@ import konlpy
 from konlpy.tag import Kkma, Okt
 
 from common.util import time
-from modules.translate_wclass import translate_wclass as ts_wclass
+from modules.translate_wclass import pos_ko, tag2morp
 
 
 konlpy.jvm.init_jvm(jvmpath=None, max_heap_size=8192)
@@ -18,11 +18,11 @@ okt = Okt()
 class Lang:
     def __init__(self, name, morps):
         self.name = name
-        self.word2index = {}
-        self.word2count = {}
-        self.index2word = {0: "SOS", 1: "EOS"}
-        self.n_words = 2  # SOS 와 EOS 포함
-        self.addWord(morps)
+        self.morp2id = {}
+        self.morp2count = {}
+        self.id2morp = {0: "SOS", 1: "EOS"}
+        self.n_morps = 2  # SOS 와 EOS 포함
+        self.addWords(morps)
 
     def addSentence(self, sentence, Okt_nomalize, cho_sung_nomalize, del_repeat_latter):
         morps_sentences = make_morps_sentences([sentence], Okt_nomalize, cho_sung_nomalize, del_repeat_latter)
@@ -31,27 +31,28 @@ class Lang:
         for sentence in morps_sentences:
             for morp_wclass_tuple in sentence:
                 morps.append(morp_wclass_tuple)
-        morps = ts_wclass(morps, translate_level=3)
+        morps = pos_ko(morps, translate_level=3)
 
-        self.addWord(morps)
+        self.addWords(morps)
 
-
-    def addWord(self, morps):
+    def addWords(self, morps):
         for morp, wclass in tqdm(morps): # morpheme: 형태소
-            if morp not in self.word2index:
-                self.word2index[morp] = {}
-            if wclass not in self.word2index[morp]:
-                self.word2index[morp][wclass] = self.n_words
-                self.index2word[self.n_words] = morp
-                self.n_words += 1
+            if morp not in self.morp2id:
+                self.morp2id[morp] = {}
+                self.morp2count[morp] = {}
+            if wclass not in self.morp2id[morp]:
+                self.morp2id[morp][wclass] = self.n_morps
+                self.id2morp[self.n_morps] = morp
+                self.morp2count[morp][wclass] = 1
+                self.n_morps += 1
             else:
-                self.word2count[morp] += 1
+                self.morp2count[morp][wclass] += 1
 
 
 def preprocess(texts, language='Korean', splited_sentence=True, 
-    start_time=None, sentences_pkl=None, 
+    start_time=None, sentences_pkl=None,
     Okt_nomalize=True, cho_sung_nomalize=True, del_repeat_latter=True):
-    # morp_to_id={}, id_to_morp={}
+
     language = language.lower()
 
     if language == 'english':
@@ -77,7 +78,7 @@ def preprocess(texts, language='Korean', splited_sentence=True,
     elif language == 'korean':
         # morps_sentences = [Kkma().pos(Okt().normalize(sentence)) for sentence in tqdm(texts)] # morpheme: 형태소
         morps_sentences = make_morps_sentences(texts, Okt_nomalize, cho_sung_nomalize, del_repeat_latter)
-        if start_time != None: print(time.str_hms_delta(start_time), "형태소 분해 완료!")
+        if start_time != None: print(time.str_delta(start_time), "형태소 분해 완료!")
         
         if sentences_pkl==None: sentences_pkl = 'morps_to_id_Kkma'
         with open(f'{sentences_pkl}.pkl', 'wb') as f:
@@ -89,15 +90,20 @@ def preprocess(texts, language='Korean', splited_sentence=True,
         for sentence in morps_sentences:
             for morp_wclass_tuple in sentence:
                 morps.append(morp_wclass_tuple)
-        morps = ts_wclass(morps, translate_level=3)
+        morps = pos_ko(morps)
 
         lang = Lang("Korean", morps)
-        if start_time != None: print(time.str_hms_delta(start_time), "형태소 사전 만들기 완료!")
+        if start_time != None: print(time.str_delta(start_time), "형태소 사전 만들기 완료!")
         
-        corpus = np.array([lang.word2index[morp][wclass] for morp, wclass in tqdm(morps)])
-        if start_time != None: print(time.str_hms_delta(start_time), "데이터를 형태소 id로 표현 완료!")
+        corpus = np.array([lang.morp2id[morp][wclass] for morp, wclass in tqdm(morps)])
+        if start_time != None: print(time.str_delta(start_time), "데이터를 형태소 id로 표현 완료!")
         
-        return (lang, corpus)
+        sentences_ids = []
+        for sentence in morps_sentences:
+            sentence_ids = [lang.morp2id[morp][tag2morp(wclass)] for morp, wclass in sentence]
+            sentences_ids.append(sentence_ids)
+        
+        return (lang, corpus, sentences_ids)
 
 
 def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_repeat_latter=True):
@@ -156,7 +162,7 @@ def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_r
         if normalized2 != normalized3: print('\n반복 글자 삭제\n-> {}\n-> {}\n'.format(normalized2, normalized3))
         
         morps_sentences.append(kkma.pos(normalized3))
-        if idx==0: print(morps_sentences[-1])
+        # if idx==0: print(morps_sentences[-1])
     return morps_sentences
 
 

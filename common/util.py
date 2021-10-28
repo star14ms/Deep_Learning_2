@@ -3,7 +3,6 @@ from konlpy.tag import Kkma, Okt
 import time as t
 
 from numpy.lib.function_base import iterable
-from modules.translate_wclass import translate_wclass as ts_wclass
 import sys
 import os
 from tqdm import tqdm
@@ -301,66 +300,5 @@ def nouns(corpus, morp_to_id, id_to_morp):
 
     return nouns
 
-################################################################################################################################
-
-def is_English_exist(string):
-    for latter in 'abcdefghijklmnopqrstuvwxyz':
-        if string.count(latter) != 0:
-            return True
-
-    return False
-
-def get_key(my_dict, val):
-    for key, value in my_dict.items():
-        if val == value:
-            return key
-
-from modules.unicode import join_jamos
-from jamo import h2j, j2hcj
-def word_ids_to_sentence(word_ids, morp_to_id, id_to_morp, verbose=False):
-    text = ''
-    pre_key = None
-    for id in word_ids:
-        key = get_key(morp_to_id[id_to_morp[id]], id)
-        space = True
-        for wclass in ['조사', '어미', '지정사', '마침표', '쉼표', '줄임표', '의존 명사', '붙임표', '접미사', '따옴표']:
-            if wclass in key:
-                space = False
-                break
-        
-        if (key=='숫자' and pre_key=='기타기호(논리수학,화폐)' or 
-            key=='외국어' and pre_key=='따옴표,괄호표,줄표' or 
-            key=='한자' and pre_key=='한자'): #or
-            # key=='외국어' and pre_key=='외국어'):
-            space = False
-        pre_key = key
-
-        if verbose: print(id_to_morp[id].ljust(10), str(space).ljust(5), key)
-        text = text + (' ' if space and text!='' else '') + id_to_morp[id]
-
-    print('\n'+text) # '\n'+sentence
-    jamo = j2hcj(h2j(text))
-    sentence = join_jamos(jamo)
-    return sentence
-
-def generate_words(start_words, model, kkma, morp_to_id, id_to_morp, one_sentence=True, verbose=False):
-    pos = ts_wclass(kkma.pos(start_words), kkma=True, translate_level=3)
-    try:
-        start_ids = [morp_to_id[morp][wclass] for morp, wclass in pos]
-    except KeyError:
-        print('그 말은 단어 사전에 아직 없어 ㅜㅜ')
-        return
-        
-    if len(start_ids) == 1:
-        word_ids = model.generate(
-            start_ids[-1], one_sentence=one_sentence, id_to_morp=id_to_morp)
-    else:
-        for x in start_ids[:-1]:
-            x = np.array(x).reshape(1, 1)
-            model.predict(x)
-        word_ids = start_ids[:-1] + model.generate(
-            start_ids[-1], one_sentence=one_sentence, id_to_morp=id_to_morp)
-
-    return word_ids_to_sentence(word_ids, morp_to_id, id_to_morp, verbose=verbose)
 
 ################################################################################################################################
