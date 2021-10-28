@@ -3,7 +3,7 @@ from common.np import *
 from modules.rnnlm_gen import BetterRnnlmGen
 import pickle
 from konlpy.tag import Kkma
-from common.util import generate_words
+from modules.make_sentence import generate_sentence
 
 
 ##### 변수 선언 #########################################################################################################
@@ -31,12 +31,12 @@ if __name__ == '__main__':
     while True:
         print('-' * 50)
         start_words = input('시작 단어: ')
-        if start_words in ['/b', '/ㅠ']: break
+        if start_words in ['/b','/ㅠ','break','exit']: break
     
         # if is_English_exist(start_words):
             # print('영어는 인식 못해 ㅜㅜ')
             # continue
         
-        text = generate_words(start_words, model, kkma, morp_to_id, id_to_morp, one_sentence=one_sentence, verbose=False)
+        text = generate_sentence(start_words, model, kkma, morp_to_id, id_to_morp, one_sentence=one_sentence, verbose=False)
         if text is not None: print('\n'+text)
         model.reset_state()

@@ -482,17 +482,35 @@ kkma_word_class_lv3 = {
 
 kkma_word_class = [kkma_word_class_lv1, kkma_word_class_lv2, kkma_word_class_lv3]
 
+word_class = {'komoran': komoran_word_class, 'kkma': kkma_word_class}
 
-def translate_wclass(pos, translate_level=2, kkma=True):
+
+def pos_ko(pos, translate_level=3, konlpy_tag='kkma'):
     if not 1 <= translate_level <= 3:
         print('Error: translate_level의 설정 범위는 1~3이다. (기본값 2로 설정)')
-        translate_level = 2
-        
-    word_class = kkma_word_class if kkma else komoran_word_class
+        translate_level = 3
+
+    konlpy_tag = konlpy_tag.lower()
+    if konlpy_tag not in ['komoran', 'kkma']:
+        print("Error: 지원하는 konlpy tag: ['komoran', 'kkma'] (기본값 kkma로 설정)")
+        konlpy_tag = 'kkma'
 
     pos2 = []
     for idx, word in enumerate(pos):
         # print(idx, word[0]) if word[1] in ['VXV'] else ()
-        pos2.append( (word[0], word_class[translate_level-1][word[1]]) )
+        pos2.append( (word[0], word_class[konlpy_tag][translate_level-1][word[1]]) )
 
     return pos2
+
+
+def tag2morp(wclass, translate_level=3, konlpy_tag='kkma'):
+    if not 1 <= translate_level <= 3:
+        print('Error: translate_level의 설정 범위는 1~3이다. (기본값 2로 설정)')
+        translate_level = 3
+
+    konlpy_tag = konlpy_tag.lower()
+    if konlpy_tag not in ['komoran', 'kkma']:
+        print("Error: 지원하는 konlpy tag: ['komoran', 'kkma'] (기본값 kkma로 설정)")
+        konlpy_tag = 'kkma'
+        
+    return word_class[konlpy_tag][translate_level-1][wclass]

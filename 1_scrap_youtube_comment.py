@@ -1,6 +1,6 @@
 from selenium import webdriver
 import sys, os
-import time as t
+import time as t, datetime as dt
 from common.util import time
 # from selenium.webdriver.common.keys import Keys
 
@@ -34,8 +34,8 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
     
     # urls 파일이 존재하면 그 안의 url들은 제외하고 댓글 수집
     cmts_already_saved_urls = None
-    if urls_txt_name!=None or os.path.isfile(f'{urls_txt_name}.txt'):
-        with open(f'{urls_txt_name}.txt', 'r', encoding="utf8") as f:
+    if urls_txt_name!=None and os.path.isfile(f'{urls_txt_name}.txt'):
+        with open(f'{urls_txt_name}.txt', 'r', encoding="utf-8") as f:
             cmts_already_saved_urls = [url_info.split('\t')[0] for url_info in f.read().splitlines()]
     
     saved_cmts_num = 0
@@ -87,7 +87,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
 # 스크롤 내리기 반복
 def scroll_downs_to_load_cmts(driver, scroll_down_num=1000):
     for j in range(scroll_down_num):
-        sys.stdout.write('\r스크롤 내리기 %d / %d (%s)' % (j, scroll_down_num, time.str_hms_delta(start_time)))
+        sys.stdout.write('\r스크롤 내리기 %d / %d (%s)' % (j, scroll_down_num, time.str_delta(start_time)))
         sys.stdout.flush()
         driver.execute_script(f"window.scrollTo(0, {(j+1)*2000});")
         driver.implicitly_wait(10)
@@ -97,7 +97,7 @@ def scroll_downs_to_load_cmts(driver, scroll_down_num=1000):
 ##### 변수 선언 #########################################################################################################
 
 
-start_time = t.time() 
+start_time = t.time()
 scroll_down_num = 1000
 
 # 브라우저 원격 접속 인터페이스
@@ -112,8 +112,9 @@ video_block = 'video-title'
 comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
-cmts_txt_name = 'dataset/YT_cmts'
-urls_txt_name = 'dataset/YT_cmts_urls'
+today = dt.date.today().strftime('%y%m%d')
+cmts_txt_name = f'data/YT_cmts_{today}'
+urls_txt_name = f'data/YT_cmts_urls_{today}'
 
 
 ##### main #####################################################################################################################
