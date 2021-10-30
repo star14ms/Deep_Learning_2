@@ -61,13 +61,11 @@ if __name__ == '__main__':
     # for i in range(100):
     #     print(i, lang.id2morp[i])
     
-    i = 0
-    for sent_ids in sentences_ids:
+    for i, sent_ids in enumerate(sentences_ids):
         # import random
         # sent_ids = random.choice(sentences_ids)
         print(pos_ko(kkma.pos(data[i])))
         print(ids_to_sentence(sent_ids, lang.morp2id, lang.id2morp, verbose=True))
         print(data[i])
-        i += 1
         input()
 

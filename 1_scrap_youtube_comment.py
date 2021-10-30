@@ -112,9 +112,10 @@ video_block = 'video-title'
 comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
-today = dt.date.today().strftime('%y%m%d')
-cmts_txt_name = f'data/YT_cmts_{today}'
-urls_txt_name = f'data/YT_cmts_urls_{today}'
+# day = dt.date.today().strftime('%y%m%d')
+day = "211029"
+cmts_txt_name = f'data/YT_cmts_{day}'
+urls_txt_name = f'data/YT_cmts_urls_{day}'
 
 
 ##### main #####################################################################################################################
