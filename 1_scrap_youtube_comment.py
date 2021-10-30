@@ -29,7 +29,7 @@ def get_video_titles_URLs(driver, video_block, URL):
 
 
 # 링크에 하나씩 들어가서 유튜브 댓글 수집하기
-def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name, urls_txt_name=None, scroll_down_num=1000):
+def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name, urls_txt_name=None, n_scroll_down=500):
     print("0 | 댓글 수 | 동영상 제목")
     
     # urls 파일이 존재하면 그 안의 url들은 제외하고 댓글 수집
@@ -54,7 +54,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
         # 동영상 일시정지, 스크롤 내리기 반복
         video = driver.find_element_by_tag_name('video') # 'ytp-play-button'
         webdriver.ActionChains(driver).click(video).perform() # webdriver.ActionChains(driver).send_keys(Keys.SPACE)
-        scroll_downs_to_load_cmts(driver, scroll_down_num)
+        scroll_downs_to_load_cmts(driver, n_scroll_down)
      
         # 댓글들 가져오기
         comments = driver.find_elements_by_id(comment_block)
@@ -85,20 +85,20 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
 
 
 # 스크롤 내리기 반복
-def scroll_downs_to_load_cmts(driver, scroll_down_num=1000):
-    for j in range(scroll_down_num):
-        sys.stdout.write('\r스크롤 내리기 %d / %d (%s)' % (j, scroll_down_num, time.str_delta(start_time)))
+def scroll_downs_to_load_cmts(driver, n_scroll_down=500, waiting_time=0.1):
+    for j in range(n_scroll_down):
+        sys.stdout.write('\r스크롤 내리기 %d / %d (%s)' % (j, n_scroll_down, time.str_delta(start_time)))
         sys.stdout.flush()
         driver.execute_script(f"window.scrollTo(0, {(j+1)*2000});")
         driver.implicitly_wait(10)
-        t.sleep(0.1)
+        t.sleep(waiting_time)
 
 
 ##### 변수 선언 #########################################################################################################
 
 
 start_time = t.time()
-scroll_down_num = 1000
+n_scroll_down = 500
 
 # 브라우저 원격 접속 인터페이스
 driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
@@ -123,6 +123,6 @@ urls_txt_name = f'data/YT_cmts_urls_{day}'
 
 if __name__ == '__main__':
     URLs, titles = get_video_titles_URLs(driver, video_block, URL)
-    get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name, urls_txt_name, scroll_down_num)
+    get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name, urls_txt_name, n_scroll_down)
     
     print(time.str_delta(start_time))

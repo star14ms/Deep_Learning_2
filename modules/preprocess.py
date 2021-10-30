@@ -50,7 +50,7 @@ class Lang:
 
 
 def preprocess(texts, language='Korean', splited_sentence=True, 
-    start_time=None, sentences_pkl=None,
+    start_time=None,
     Okt_nomalize=True, cho_sung_nomalize=True, del_repeat_latter=True):
 
     language = language.lower()
@@ -79,12 +79,6 @@ def preprocess(texts, language='Korean', splited_sentence=True,
         # morps_sentences = [Kkma().pos(Okt().normalize(sentence)) for sentence in tqdm(texts)] # morpheme: 형태소
         morps_sentences = make_morps_sentences(texts, Okt_nomalize, cho_sung_nomalize, del_repeat_latter)
         if start_time != None: print(time.str_delta(start_time), "형태소 분해 완료!")
-        
-        if sentences_pkl==None: sentences_pkl = 'morps_to_id_Kkma'
-        with open(f'{sentences_pkl}.pkl', 'wb') as f:
-            pickle.dump(morps_sentences, f)
-        # with open(f'{sentences_pkl}.pkl', 'rb') as f:
-            # morps_sentences = pickle.load(f)
 
         morps = []
         for sentence in morps_sentences:
@@ -138,27 +132,32 @@ def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_r
         sentence2 = emoji_pattern.sub(r'', sentence) # no emoji
         # if sentence != sentence2: print('\n이모티콘 삭제->', sentence2)
         
+        # 문자가 하나도 없으면 스킵
         if sentence2 == '': continue
+
         only_spaces = True
-        for char in sentence2: only_spaces = False if char!=' ' else only_spaces
+        for char in sentence2: 
+            if char!=' ':
+                only_spaces = False 
+                break
         if only_spaces: continue
         
         # okt 형태소 분석기의 normalize 전처리 사용
         normalized = okt.normalize(sentence2) if Okt_nomalize else sentence2
-        # if sentence != normalized:
+        if sentence != normalized:
             # try:
-            #     print('\nOkt 정규화\n-> {}\n-> {}\n'.format(sentence, normalized))
+                print('\nOkt 정규화\n-> {}\n-> {}\n'.format(sentence, normalized))
             # except:
             #     pass
             #     import json
             #     print('\nOkt 정규화\n-> {}\n-> {}\n'.format(json.loads(sentence), normalized))
         
-        # 초성만 19자 이상 반복시 줄이기 (분석 지연 방지)
+        # 초성만 19자 이상 반복시 줄이기 (형태소 분석 지연 방지)
         normalized2 = nomalize_cho_sungs(normalized) if cho_sung_nomalize else normalized
         if normalized != normalized2: print('\n반복 초성 삭제\n-> {}\n-> {}\n'.format(normalized, normalized2))
         
         # 반복되는 문자 간략화
-        normalized3 = delete_repeat_latter(normalized2) if del_repeat_latter else normalized2 ### sentence
+        normalized3 = delete_repeated_latter(normalized2) if del_repeat_latter else normalized2 ### sentence
         if normalized2 != normalized3: print('\n반복 글자 삭제\n-> {}\n-> {}\n'.format(normalized2, normalized3))
         
         morps_sentences.append(kkma.pos(normalized3))
@@ -181,7 +180,7 @@ def nomalize_cho_sungs(sentence):
     return sentence2
 
 
-def delete_repeat_latter(sentence, kkma_error_occur_len=18):
+def delete_repeated_latter(sentence, kkma_error_occur_len=18):
     repeator_size = 0
     while True:
         target = sentence[:repeator_size+1]
