@@ -4,7 +4,7 @@ import random
 
 import torch
 from model import EncoderRNN, AttnDecoderRNN
-from train_module import prepareData, trainIters, evaluate, evaluateRandomly 
+from train_module import trainIters, evaluate, evaluateRandomly 
 from train_module import device
 
 import matplotlib.pyplot as plt
@@ -15,12 +15,18 @@ import pickle
 
 ################################################################################################################################
 
-input_lang, output_lang, pairs = prepareData('eng', 'fra', True)
-print(random.choice(pairs))
+# 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
+lang_file = 'saved_pkls/test_lang_corpus.pkl'
+with open(lang_file, 'rb') as file:
+    lang, corpus, sentences = pickle.load(file).values()
 
-# # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
-# with open('saved_pkls/test_lang_corpus.pkl', 'rb') as f:
-#     lang, corpus = pickle.load(f).values()
+input_lang, output_lang = lang, lang
+pairs = [[sentence[:-1], sentence[1:]] for sentence in sentences]
+
+max_length_ = 0
+for sentence in sentences:
+    max_length_ = max(max_length_, len(sentence)-1+1) # -1: [:-1] / +1: EOS_TOKEN
+print("MAX_LENGTH =", max_length_)
 
 ################################################################################################################################
 
@@ -38,30 +44,30 @@ def showPlot(points):
     # 주기적인 간격에 이 locator가 tick을 설정
     loc = ticker.MultipleLocator(base=0.5)
     ax.yaxis.set_major_locator(loc)
-    plt.xlabel('학습량 (100문장)')
-    plt.ylabel('Loss')
+    plt.xlabel('학습한 문장 수 (100문장)')
+    plt.ylabel('Loss (손실)')
     plt.plot(points)
     plt.show()
 
 # 한글 출력 테스트
 plt.text(0.2, 0.3, '한글', size=100)
+plt.show()
 
 ################################################################################################################################
 
 hidden_size = 256
-encoder1 = EncoderRNN(input_lang.n_words, hidden_size).to(device)
-attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_words, dropout_p=0.1).to(device)
+encoder1 = EncoderRNN(input_lang.n_morps, hidden_size).to(device)
+attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_morps, dropout_p=0.1).to(device)
 
-plot_losses = trainIters(encoder1, attn_decoder1, 75000, input_lang, output_lang, pairs, print_every=5000) # 75000
+plot_losses = trainIters(encoder1, attn_decoder1, 10000, pairs, print_every=1000)
+torch.save(encoder1, 'torch_save/EncoderRNN.pth')
+torch.save(attn_decoder1, 'torch_save/AttnDecoderRNN.pth')
 showPlot(plot_losses)
 
-torch.save(encoder1, 'EncoderRNN.pth')
-torch.save(attn_decoder1, 'AttnDecoderRNN.pth')
+encoder1 = torch.load('torch_save/EncoderRNN.pth')
+attn_decoder1 = torch.load('torch_save/AttnDecoderRNN.pth')
 
-encoder1 = torch.load('EncoderRNN.pth')
-attn_decoder1 = torch.load('AttnDecoderRNN.pth')
-
-evaluateRandomly(encoder1, attn_decoder1, pairs, input_lang, output_lang, device)
+evaluateRandomly(encoder1, attn_decoder1, pairs, output_lang, device)
 
 ################################################################################################################################
 
@@ -83,7 +89,7 @@ def showAttention(input_sentence, output_words, attentions):
     #                    ['<EOS>'], rotation=90, fontproperties=font_name)
     ax.set_yticklabels([''] + output_words, fontproperties=font_name)
 
-    for i, word in enumerate(input_sentence.split(' ')):
+    for i, word in enumerate(input_sentence.split(' ')+['<EOS>']):
         ax.text(-0.2+i*1, -0.8, word, rotation=90)   
     # for i, word in enumerate(output_words):
     #     ax.text(-0.8, i*1, word, horizontalalignment='right', size=15)
