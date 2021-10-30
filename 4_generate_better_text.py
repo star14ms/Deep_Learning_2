@@ -37,6 +37,6 @@ if __name__ == '__main__':
             # print('영어는 인식 못해 ㅜㅜ')
             # continue
         
-        text = generate_sentence(start_words, model, kkma, morp_to_id, id_to_morp, one_sentence=one_sentence, verbose=False)
+        text = generate_sentence(start_words, model, morp_to_id, id_to_morp, one_sentence=one_sentence, verbose=False)
         if text is not None: print('\n'+text)
         model.reset_state()

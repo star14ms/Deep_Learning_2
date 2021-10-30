@@ -3,7 +3,7 @@ import json
 
 from modules.rnnlm_gen import BetterRnnlmGen
 from modules.BotServer import BotServer
-from common.util import generate_words # is_English_exist, 
+from modules.make_sentence import generate_sentence # is_English_exist, 
 import pickle
 
 
@@ -33,7 +33,7 @@ def to_client(conn, addr):
             # if is_English_exist(query): 
                 # raise EnglishError
             
-            answer = generate_words(query, model, kkma, morp_to_id, id_to_morp)
+            answer = generate_sentence(query, model, morp_to_id, id_to_morp)
             model.reset_state()
             if answer is None: 
                 raise ValueError

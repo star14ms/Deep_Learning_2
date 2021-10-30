@@ -3,22 +3,23 @@ import numpy as np
 
 from modules.unicode import join_jamos
 from jamo import h2j, j2hcj
+from modules.preprocess import kkma
 
 
 shortening_words = [ 
     ('가아','가'),('나아','나'),('다아','다'),('라아','라'),('마아','마'),
     ('바아','바'),('사아','사'),('아아','아'),('자아','자'),('차아','차'),
-    ('카아','카'),('타아','타'),('파아','파'),('하아','하'),('까아','까')
+    ('카아','카'),('타아','타'),('파아','파'),('하아','하'),('까아','까'),
 
     ('거어','거'),('너어','너'),('더어','더'),('러어','러'),('머어','머'),
     ('버어','버'),('서어','서'),('어어','어'),('저어','저'),('처어','처'),
     ('커어','커'),('터어','터'),('퍼어','퍼'),('허어','허'),
 
-    ('하어','해'),('하었','했'),('쓰었','썼'),('되어','돼'),('나었','났')
+    ('하어','해'),('하었','했'),('쓰었','썼'),('되어','돼'),('나었','났'),
     ('나는','난'),('너는','넌'),('오아서','와서'),('스어','서'),('하이라','해라'),
 
     ('알니','아니'),('걸ㄴ','건'),('닿ㄹ라','달라'),('알ㄴ','안'),('들ㄴ','든'),
-    ('몰ㄹ','몰'),('낳ㄴ','난')
+    ('몰ㄹ','몰'),('낳ㄴ','난'),
     (' n ',' n'),
 ] # Konlpy kkma 기준
 
@@ -78,8 +79,8 @@ def ids_to_sentence(word_ids, morp2id, id2morp, verbose=False):
     return sentence
 
 
-def generate_sentence(start_words, model, kkma, morp2id, id2morp, one_sentence=True, verbose=False):
-    pos = pos_ko(kkma.pos(start_words), kkma=True)
+def generate_sentence(start_words, model, morp2id, id2morp, one_sentence=True, verbose=False):
+    pos = pos_ko(kkma.pos(start_words))
 
     try:
         start_ids = [morp2id[morp][wclass] for morp, wclass in pos]

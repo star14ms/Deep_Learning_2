@@ -49,7 +49,7 @@ class Trainer:
                 # 評価
                 if (eval_interval is not None) and (iters % eval_interval) == 0:
                     avg_loss = total_loss / loss_count
-                    elapsed_time = time.str_hms_delta(start_time)
+                    elapsed_time = time.str_delta(start_time)
                     print('%s | epoch %d | iter %d/%d | loss %.3f'
                           % (elapsed_time, self.current_epoch+1, iters+1, max_iters, avg_loss))
                     self.loss_list.append(float(avg_loss))
@@ -124,7 +124,7 @@ class RnnlmTrainer:
         # 처음 perplexity 평가
         batch_x, batch_t = self.get_batch(xs, ts, batch_size, time_size, stay_time_idx=True)
         
-        elapsed_time = time.str_hms_delta(start_time, join=':')
+        elapsed_time = time.str_delta(start_time, join=':')
         print('{} | learned {} | iter {}/{} | ppl None'
               .format(elapsed_time, model.learning_num, self.time_idx//self.time_size, max_iters))
 
@@ -148,7 +148,7 @@ class RnnlmTrainer:
                     
                     # perplexity 평가
                     ppl = np.exp(total_loss / loss_count)
-                    elapsed_time = time.str_hms_delta(start_time, join=':')
+                    elapsed_time = time.str_delta(start_time, join=':')
                     print('{} | learned {} | iter {}/{} | ppl {}'
                           .format(elapsed_time, model.learning_num, iters+1, max_iters, round(ppl, 1)))
                     self.ppl_list.append(float(ppl))
@@ -158,7 +158,7 @@ class RnnlmTrainer:
                     eval_num += 1
                     if eval_num % save_per_eval == 0: ### iters+1 %
                         learning_time = model.learning_time + t.time()-start_time
-                        str_learning_time = time.str_hms(learning_time, hms=True, join='')
+                        str_learning_time = time.str(learning_time, hms=True, join='')
                         model.save_params(str_learning_time, round(ppl, 1))
                         self.save_pplist(str_learning_time, round(ppl, 1))
                         eval_num = 0
