@@ -1,6 +1,8 @@
 from __future__ import unicode_literals, print_function, division
 from io import open
 import random
+import pickle
+import argparse
 
 import torch
 from model import EncoderRNN, AttnDecoderRNN
@@ -11,13 +13,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.font_manager as fm
 
-import pickle
-
-import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--lang_file", default="saved_pkls/YT_cmts_211031_lang_corpus.pkl", type=str, required=False,
-                    help="pkl file that you got after running 2_preprocess.py")
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211031_lang_corpus.pkl", type=str, required=False,
+                    help="path of .pkl file that you got after running 2_preprocess.py")
 parser.add_argument("--n_learn", default=100000, type=int, required=False,
                     help="n sentence will learn")
 parser.add_argument("--hidden_size", default=256, type=int, required=False,
@@ -29,8 +28,8 @@ args = parser.parse_args()
 ################################################################################################################################
 
 # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
-lang_file = 'saved_pkls/YT_cmts_211031_lang_corpus.pkl'
-with open(lang_file, 'rb') as file:
+data_file = args.data_file
+with open(data_file, 'rb') as file:
     lang, corpus, sentences = pickle.load(file).values()
 
 input_lang, output_lang = lang, lang
