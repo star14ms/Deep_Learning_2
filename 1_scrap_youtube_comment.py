@@ -49,7 +49,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
         # 웹 사이트 가져오기
         driver.get(url)
         driver.implicitly_wait(10)
-        t.sleep(0.1)
+        t.sleep(0.2)
         
         # 동영상 일시정지, 스크롤 내리기 반복
         video = driver.find_element_by_tag_name('video') # 'ytp-play-button'
@@ -133,8 +133,8 @@ video_block = 'video-title'
 comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
-day = dt.date.today().strftime('%y%m%d')
-# day = "211029"
+# day = dt.date.today().strftime('%y%m%d')
+day = "211031"
 cmts_txt_name = f'data/YT_cmts_{day}'
 urls_txt_name = f'data/YT_cmts_urls_{day}'
 
