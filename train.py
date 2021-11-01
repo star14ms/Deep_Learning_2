@@ -13,6 +13,19 @@ import matplotlib.font_manager as fm
 
 import pickle
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--lang_file", default="saved_pkls/YT_cmts_211031_lang_corpus.pkl", type=str, required=False,
+                    help="pkl file that you got after running 2_preprocess.py")
+parser.add_argument("--n_learn", default=100000, type=int, required=False,
+                    help="n sentence will learn")
+parser.add_argument("--hidden_size", default=256, type=int, required=False,
+                    help="word_vector_size")
+parser.add_argument("--print_every", default=10000, type=int, required=False,
+                    help="verbose")
+args = parser.parse_args()
+
 ################################################################################################################################
 
 # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
@@ -27,7 +40,8 @@ max_length_ = 0
 for sentence in sentences:
     max_length_ = max(max_length_, len(sentence)-1+1) # -1: [:-1] / +1: EOS_TOKEN
 print("MAX_LENGTH =", max_length_)
-n_learn = 10000
+n_learn = args.n_learn
+print(f"학습할 문장 수: {n_learn}개")
 
 ################################################################################################################################
 
@@ -56,11 +70,12 @@ plt.show()
 
 ################################################################################################################################
 
-hidden_size = 256
+hidden_size = args.hidden_size
+print_every = args.print_every
 encoder1 = EncoderRNN(input_lang.n_morps, hidden_size).to(device)
 attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_morps, dropout_p=0.1).to(device)
 
-plot_losses = trainIters(encoder1, attn_decoder1, n_learn, pairs, print_every=10000)
+plot_losses = trainIters(encoder1, attn_decoder1, n_learn, pairs, print_every)
 torch.save(encoder1, 'torch_save/EncoderRNN.pth')
 torch.save(attn_decoder1, 'torch_save/AttnDecoderRNN.pth')
 showPlot(plot_losses)
