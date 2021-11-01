@@ -2,7 +2,7 @@ from selenium import webdriver
 import sys, os
 import time as t, datetime as dt
 from common.util import time
-# from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.keys import Keys
 
 
 ##### 함수 정의 ###############################################################################################################
@@ -49,18 +49,20 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
         # 웹 사이트 가져오기
         driver.get(url)
         driver.implicitly_wait(10)
-        t.sleep(1)
+        t.sleep(0.1)
         
         # 동영상 일시정지, 스크롤 내리기 반복
         video = driver.find_element_by_tag_name('video') # 'ytp-play-button'
-        webdriver.ActionChains(driver).click(video).perform() # webdriver.ActionChains(driver).send_keys(Keys.SPACE)
-        scroll_downs_to_load_cmts(driver, n_scroll_down)
-     
+        driver.execute_script("arguments[0].pause()", video)
+        # webdriver.ActionChains(driver).click(video).perform() # webdriver.ActionChains(driver).send_keys(Keys.SPACE)
+        t.sleep(0.5)
+        scroll_down(driver, n_scroll_down)
+        
         # 댓글들 가져오기
         comments = driver.find_elements_by_id(comment_block)
     
         if len(comments) < 100:
-            print("\r{0} | 오류 | {1}".format(i+1, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..')))
+            print("\r{0} | 스킵 | {1}".format(i+1, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..')))
             continue
 
         # txt파일로 기록
@@ -72,7 +74,8 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
                 if len(cmt)==0: 
                     skip_num += 1
                 else:
-                    f.write(cmt + ('.\n' if cmt[-1] not in '.?!' else '\n'))
+                    f.write(cmt + '\n')
+                    # f.write(cmt + ('.\n' if cmt[-1] not in '.?!' else '\n'))
         
         # 댓글 수집한 동영상 목록에 현재 url추가
         with open(f'{urls_txt_name}.txt', 'a', encoding="utf-8") as f:
@@ -85,24 +88,42 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, cmts_txt_name
 
 
 # 스크롤 내리기 반복
-def scroll_downs_to_load_cmts(driver, n_scroll_down=500, waiting_time=0.1):
-    for j in range(n_scroll_down):
-        sys.stdout.write('\r스크롤 내리기 %d / %d (%s)' % (j, n_scroll_down, time.str_delta(start_time)))
+def scroll_down(driver, n_scroll_down=500, waiting_time=0.1, break_num=80):
+    body = driver.find_element_by_tag_name('body')
+    height_last = driver.execute_script('return document.querySelector("#columns").offsetHeight')
+    n_same_height = 0
+
+    for n in range(n_scroll_down):
+        sys.stdout.write('\r스크롤 내리기 %d / %d (창 높이: %dpx) (%s)' % (n, n_scroll_down, height_last, time.str_delta(start_time)))
         sys.stdout.flush()
-        driver.execute_script(f"window.scrollTo(0, {(j+1)*2000});")
+
+        body.send_keys(Keys.END) # driver.execute_script(f"window.scrollTo(0, {(j+1)*2000});")
         driver.implicitly_wait(10)
         t.sleep(waiting_time)
+        
+        # 창 높이가 계속 변하지 않으면 중단
+        height_now = driver.execute_script('return document.querySelector("#columns").offsetHeight')
+        if height_last!=height_now:
+            n_same_height = 0
+            height_last = height_now
+        else:
+            n_same_height += 1
+            if n_same_height > break_num: break
+    
+    sys.stdout.write('\r댓글 수집 중... %d / %d (창 높이: %dpx) (%s)' % (n, n, height_last, time.str_delta(start_time)))
+    sys.stdout.flush()
 
 
 ##### 변수 선언 #########################################################################################################
-
 
 start_time = t.time()
 n_scroll_down = 500
 
 # 브라우저 원격 접속 인터페이스
-driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
-driver = webdriver.Chrome(driver_path) 
+driver_path = r'C:\Users\user\Documents\Coding\chromedriver.exe'
+driver = webdriver.Chrome(driver_path)
+driver.set_window_position(0, 0)
+driver.set_window_size(800, 800)
 
 # 검색하고자 하는 유튜브 페이지
 URL = 'https://www.youtube.com/feed/trending?bp=6gQJRkVleHBsb3Jl'
@@ -112,8 +133,8 @@ video_block = 'video-title'
 comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
-# day = dt.date.today().strftime('%y%m%d')
-day = "211029"
+day = dt.date.today().strftime('%y%m%d')
+# day = "211029"
 cmts_txt_name = f'data/YT_cmts_{day}'
 urls_txt_name = f'data/YT_cmts_urls_{day}'
 

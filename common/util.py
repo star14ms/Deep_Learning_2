@@ -1,16 +1,10 @@
 import numpy as np
-from konlpy.tag import Kkma, Okt
 import time as t
 
 from numpy.lib.function_base import iterable
 import sys
 import os
 from tqdm import tqdm
- 
-import konlpy
-konlpy.jvm.init_jvm(jvmpath=None, max_heap_size=8192)
-kkma = Kkma()
-okt = Okt()
 
 ################################################################################################################################
 
