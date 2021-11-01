@@ -3,7 +3,11 @@ import numpy as np
 
 from modules.unicode import join_jamos
 from jamo import h2j, j2hcj
-from modules.preprocess import kkma
+
+import konlpy
+from konlpy.tag import Kkma, Okt
+konlpy.jvm.init_jvm(jvmpath=None, max_heap_size=8192)
+kkma = Kkma()
 
 
 shortening_words = [ 
@@ -16,11 +20,17 @@ shortening_words = [
     ('커어','커'),('터어','터'),('퍼어','퍼'),('허어','허'),
 
     ('하어','해'),('하었','했'),('쓰었','썼'),('되어','돼'),('나었','났'),
-    ('나는','난'),('너는','넌'),('오아서','와서'),('스어','서'),('하이라','해라'),
+    ('나는','난'),('너는','넌'),('오아서','와서'),('스어','서'),('쓰어','써'),
+    ('하이라','해라'),('보았','봤'),('그리하여도','그래도'),('때었','땠'),
+    ('주어야','줘야'),
+
+    ('시었','셨'),('끼었','꼈'),('지었','졌'),
+    ('이었','였'),('히었','혔'),('리었','렸'),('기었','겼'),
 
     ('알니','아니'),('걸ㄴ','건'),('닿ㄹ라','달라'),('알ㄴ','안'),('들ㄴ','든'),
-    ('몰ㄹ','몰'),('낳ㄴ','난'),
-    (' n ',' n'),
+    ('몰ㄹ','몰'),('낳ㄴ','난'),('밉ㄴ','미운'),('어렵ㄴ','어려운'),
+    (' n ',' n'),('알ㄹ거','알 거'),('어떻ㄴ거','어떤거'),('느어','너'),
+    ('고맙어','고마워'),('고맙었','고마웠')
 ] # Konlpy kkma 기준
 
 
@@ -38,6 +48,28 @@ def get_key(my_dict, val):
             return key
 
 
+def is_space_needed(key, pre_key, in_quotation_mark):
+    space = True
+
+    for wclass in ['조사', '어미', '지정사', '마침표', '쉼표', '줄임표', '의존 명사', '붙임표', '접미사', '따옴표','기타기호']:
+        if wclass in key:
+            space = False
+            break
+    
+    if ((pre_key in ['숫자', '수사', '붙임표(물결,숨김,빠짐)']) or
+        # (key=='숫자' and pre_key=='기타기호(논리수학,화폐)') or 
+        # (key=='기타기호(논리수학,화폐)' and pre_key=='숫자') or 
+        (pre_key=='따옴표,괄호표,줄표') or 
+        # (key=='외국어' and pre_key=='외국어'):
+        (key=='한자' and pre_key=='한자')): 
+        space = False
+ 
+    if not in_quotation_mark and '따옴표,괄호표,줄표' in [key, pre_key]:
+        space = True
+
+    return space
+
+
 def ids_to_sentence(word_ids, morp2id, id2morp, verbose=False):
     text = ''
     pre_key = None
@@ -46,31 +78,36 @@ def ids_to_sentence(word_ids, morp2id, id2morp, verbose=False):
     for id in word_ids:
         morp = id2morp[id]
         key = get_key(morp2id[morp], id)
-        space = True
-        for wclass in ['조사', '어미', '지정사', '마침표', '쉼표', '줄임표', '의존 명사', '붙임표', '접미사', '따옴표','기타기호']:
-            if wclass in key:
-                space = False
-                break
-        
-        if ((pre_key in ['숫자', '수사', '붙임표(물결,숨김,빠짐)']) or
-            # (key=='숫자' and pre_key=='기타기호(논리수학,화폐)') or 
-            # (key=='기타기호(논리수학,화폐)' and pre_key=='숫자') or 
-            (pre_key=='따옴표,괄호표,줄표') or 
-            # (key=='외국어' and pre_key=='외국어'):
-            (key=='한자' and pre_key=='한자')): 
-            space = False
- 
-        if not in_quotation_mark and '따옴표,괄호표,줄표' in [key, pre_key]:
-            space = True
+        space = is_space_needed(key, pre_key, in_quotation_mark)
+        if verbose: print(morp.ljust(10), str(space).ljust(5), key)
+
         if key=='따옴표,괄호표,줄표':
             in_quotation_mark = False if in_quotation_mark else True
-
         pre_key = key
-
-        if verbose: print(morp.ljust(10), str(space).ljust(5), key)
         text = text + (' ' if space and text!='' else '') + morp
 
     # print('\n'+text) # '\n'+sentence
+    jamo = j2hcj(h2j(text))
+    sentence = join_jamos(jamo)
+
+    for shortening in shortening_words:
+        sentence = sentence.replace(*shortening)
+    return sentence
+
+
+def pos_to_sentence(pos, verbose=False):
+    text = ''
+    pre_wclass = None
+    in_quotation_mark = False
+
+    for (morp, wclass) in pos_ko(pos):
+        space = is_space_needed(wclass, pre_wclass, in_quotation_mark)
+        if verbose: print(morp.ljust(10), str(space).ljust(5), wclass)
+
+        if wclass=='따옴표,괄호표,줄표':
+            in_quotation_mark = False if in_quotation_mark else True
+        pre_wclass = wclass
+        text = text + (' ' if space and text!='' else '') + morp
     jamo = j2hcj(h2j(text))
     sentence = join_jamos(jamo)
 

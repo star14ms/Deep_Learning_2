@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+from torch.autograd.grad_mode import F
 from tqdm import tqdm
 import re
 import sys
@@ -8,11 +9,30 @@ from konlpy.tag import Kkma, Okt
 
 from common.util import time
 from modules.translate_wclass import pos_ko, tag2morp
+from modules.make_sentence import pos_to_sentence
+from model import MAX_LENGTH
 
 
 konlpy.jvm.init_jvm(jvmpath=None, max_heap_size=8192)
 kkma = Kkma()
 okt = Okt()
+
+
+CHOSUNG_LIST = \
+    ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 
+     'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 
+     'ㅌ', 'ㅍ', 'ㅎ']
+
+JUNGSUNG_LIST = \
+    ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ',
+     'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ',
+     'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
+
+JONGSUNG_LIST = \
+    [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 
+     'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ',  
+     'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 
+     'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
 
 
 class Lang:
@@ -24,8 +44,8 @@ class Lang:
         self.n_morps = 2  # SOS 와 EOS 포함
         self.addWords(morps)
 
-    def addSentence(self, sentence, Okt_nomalize, cho_sung_nomalize, del_repeat_latter):
-        morps_sentences = make_morps_sentences([sentence], Okt_nomalize, cho_sung_nomalize, del_repeat_latter)
+    def addSentence(self, sentence, Okt_nomalize, short_sound_nomalize, del_repeat_latter):
+        morps_sentences = make_morps_sentences([sentence], Okt_nomalize, short_sound_nomalize, del_repeat_latter)
         
         morps = []
         for sentence in morps_sentences:
@@ -49,11 +69,12 @@ class Lang:
                 self.morp2count[morp][wclass] += 1
 
 
-def preprocess(texts, language='Korean', splited_sentence=True, 
-    start_time=None,
-    Okt_nomalize=True, cho_sung_nomalize=True, del_repeat_latter=True):
+def preprocess(texts, loaded_data=None, language='Korean', splited_sentence=True, 
+    start_time=None, Okt_nomalize=True, short_sound_nomalize=True, del_repeat_latter=True):
 
     language = language.lower()
+    if loaded_data:
+        lang, loaded_corpus, loaded_sentence_ids = loaded_data.values()
 
     if language == 'english':
         if splited_sentence: 
@@ -76,8 +97,7 @@ def preprocess(texts, language='Korean', splited_sentence=True,
         return corpus, word_to_id, id_to_word
         
     elif language == 'korean':
-        # morps_sentences = [Kkma().pos(Okt().normalize(sentence)) for sentence in tqdm(texts)] # morpheme: 형태소
-        morps_sentences = make_morps_sentences(texts, Okt_nomalize, cho_sung_nomalize, del_repeat_latter)
+        morps_sentences = make_morps_sentences(texts, Okt_nomalize, short_sound_nomalize, del_repeat_latter)
         if start_time != None: print(time.str_delta(start_time), "형태소 분해 완료!")
 
         morps = []
@@ -85,8 +105,11 @@ def preprocess(texts, language='Korean', splited_sentence=True,
             for morp_wclass_tuple in sentence:
                 morps.append(morp_wclass_tuple)
         morps = pos_ko(morps)
-
-        lang = Lang("Korean", morps)
+        
+        if loaded_data:
+            lang.addWords(morps)
+        else:
+            lang = Lang("Korean", morps)
         if start_time != None: print(time.str_delta(start_time), "형태소 사전 만들기 완료!")
         
         corpus = np.array([lang.morp2id[morp][wclass] for morp, wclass in tqdm(morps)])
@@ -97,12 +120,16 @@ def preprocess(texts, language='Korean', splited_sentence=True,
             sentence_ids = [lang.morp2id[morp][tag2morp(wclass)] for morp, wclass in sentence]
             sentences_ids.append(sentence_ids)
         
-        return (lang, corpus, sentences_ids)
+        if loaded_data:
+            return (lang, np.hstack((loaded_corpus, corpus)), loaded_sentence_ids+sentences_ids)
+        else:
+            return (lang, corpus, sentences_ids)
 
 
-def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_repeat_latter=True):
+def make_morps_sentences(texts, Okt_nomalize=True, short_sound_nomalize=True, del_repeat_latter=True):
     len_text = len(texts)
     morps_sentences = []
+    n_splited = 0
 
     emoji_pattern = re.compile("["
         # u"\U0001F600-\U0001F64F"  # emoticons
@@ -125,7 +152,7 @@ def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_r
                            "]+", flags=re.UNICODE)
 
     for idx, sentence in enumerate(texts):
-        sys.stdout.write(('\r%d / %d | %s' % (idx, len_text, (
+        sys.stdout.write(('\r%d / %d | %d | %s' % (idx+1, len_text, n_splited, (
             sentence[:25]+'...' if len(sentence)>=25 else sentence).ljust(32))))
         sys.stdout.flush()
         
@@ -144,38 +171,50 @@ def make_morps_sentences(texts, Okt_nomalize=True, cho_sung_nomalize=True, del_r
         
         # okt 형태소 분석기의 normalize 전처리 사용
         normalized = okt.normalize(sentence2) if Okt_nomalize else sentence2
-        if sentence != normalized:
+        # if sentence != normalized:
             # try:
-                print('\nOkt 정규화\n-> {}\n-> {}\n'.format(sentence, normalized))
+                # print('\nOkt 정규화\n-> {}\n-> {}\n'.format(sentence, normalized))
             # except:
             #     pass
             #     import json
             #     print('\nOkt 정규화\n-> {}\n-> {}\n'.format(json.loads(sentence), normalized))
         
-        # 초성만 19자 이상 반복시 줄이기 (형태소 분석 지연 방지)
-        normalized2 = nomalize_cho_sungs(normalized) if cho_sung_nomalize else normalized
+        # 초성, 중성, 종성만 19자 이상 반복시 줄이기 (형태소 분석 지연 방지)
+        normalized2 = nomalize_short_sounds(normalized) if short_sound_nomalize else normalized
+        if normalized2 == False: continue
         if normalized != normalized2: print('\n반복 초성 삭제\n-> {}\n-> {}\n'.format(normalized, normalized2))
         
         # 반복되는 문자 간략화
         normalized3 = delete_repeated_latter(normalized2) if del_repeat_latter else normalized2 ### sentence
-        if normalized2 != normalized3: print('\n반복 글자 삭제\n-> {}\n-> {}\n'.format(normalized2, normalized3))
+        # if normalized2 != normalized3: print('\n반복 글자 삭제\n-> {}\n-> {}\n'.format(normalized2, normalized3))
         
-        morps_sentences.append(kkma.pos(normalized3))
-        # if idx==0: print(morps_sentences[-1])
+        # 형태소 분해 후 문장 단위로 쪼개서 저장
+        pos = kkma.pos(normalized3)
+        splited_pos = split_pos_into_sentence(pos)
+        if len(splited_pos) > 1: n_splited += 1
+
+        for pos in splited_pos:
+            morps_sentences.append(pos)
+
     return morps_sentences
 
 
-def nomalize_cho_sungs(sentence):
-    continuous_cho_sung = 0
+def nomalize_short_sounds(sentence):
+    short_sounds = CHOSUNG_LIST + JUNGSUNG_LIST + JONGSUNG_LIST
+    n_short_sound = 0
+    continuous_short_sound = 0
     sentence2 = ""
     for latter in sentence:
-        if latter in 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎㄲㄸㅃㅆㅉㄳㄶㄵㄺㄻㄼㄽㄾㅀㅄㆍ':
-            continuous_cho_sung += 1
+        if latter in short_sounds:
+            continuous_short_sound += 1
+            n_short_sound += 1
         else:
-            continuous_cho_sung = 0
+            continuous_short_sound = 0
 
-        if continuous_cho_sung <= 18:
+        if continuous_short_sound <= 18:
             sentence2 = sentence2 + latter
+
+    if n_short_sound > 30: return False
 
     return sentence2
 
@@ -190,7 +229,8 @@ def delete_repeated_latter(sentence, kkma_error_occur_len=18):
         while True:
             last_index = index
             index = sentence.find(target, index+1)
-            if index == -1:
+            if index == -1 or \
+                (len(idxs)>=2 and idxs[-1]-idxs[-2] != index-idxs[-1]):
                 break
             idxs.append(index)
 
@@ -201,10 +241,59 @@ def delete_repeated_latter(sentence, kkma_error_occur_len=18):
                 break
         else:
             return sentence
-    
+
     if 1 < repeator_size:
         # print('\n반복 문자:', target, idxs)
         return target*(4 if repeator_size<=4 else kkma_error_occur_len//repeator_size) + (
             sentence[last_index+repeator_size:] if last_index + repeator_size < len(sentence) else "")
     else:
         return sentence
+
+
+def split_pos_into_sentence(pos, MAX_LENGTH=MAX_LENGTH, 
+    end_sentence_tags=['EFN','EFQ','EFO','EFA','EFI','EFR','EMO','SW']) -> (list):
+    
+    if len(pos) > MAX_LENGTH:
+        
+        # 문장들 길이 구하기
+        lens_sent = []
+        idx_former_end = -1
+        end_sentence = False
+        for idx, (morp, wclass) in enumerate(pos):
+            if 'EF' in wclass: end_sentence = True
+            
+            if morp=='.' and wclass=='SF' or idx==len(pos)-1 or \
+                (end_sentence and wclass in end_sentence_tags and pos[idx+1][1] not in ['EMO','SW']):
+                end_sentence = False
+                len_sent = idx - idx_former_end
+                lens_sent.append(len_sent)
+                idx_former_end = idx
+
+        # MAX_LENGTH보다 작게 유지하며 길이 합치기
+        for idx, len_sent in enumerate(lens_sent):
+            if idx==0: continue
+            else: 
+                len_merged = len_sent + lens_sent[idx-1]
+                if len_merged <= MAX_LENGTH:
+                    lens_sent[idx] = len_merged
+                    lens_sent[idx-1] = 0
+
+        # 합쳐진 길이들로 문장 자르기
+        # print()
+        # print(lens_sent)
+        # print(pos)
+        splited_morps_sent = []
+        idx = 0
+        for len_sent in lens_sent:
+            if len_sent==0 or len_sent > MAX_LENGTH: continue
+            splited_morps_sent.append(pos[idx:idx+len_sent])
+            idx += len_sent
+        
+        # for morps_sent in splited_morps_sent:
+        #     print("\n", pos_to_sentence(morps_sent))
+        # print()
+        return splited_morps_sent
+    else:
+        return [pos]
+
+

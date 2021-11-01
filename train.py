@@ -16,7 +16,7 @@ import pickle
 ################################################################################################################################
 
 # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
-lang_file = 'saved_pkls/test_lang_corpus.pkl'
+lang_file = 'saved_pkls/YT_cmts_211031_lang_corpus.pkl'
 with open(lang_file, 'rb') as file:
     lang, corpus, sentences = pickle.load(file).values()
 
@@ -27,6 +27,7 @@ max_length_ = 0
 for sentence in sentences:
     max_length_ = max(max_length_, len(sentence)-1+1) # -1: [:-1] / +1: EOS_TOKEN
 print("MAX_LENGTH =", max_length_)
+n_learn = 10000
 
 ################################################################################################################################
 
@@ -50,7 +51,7 @@ def showPlot(points):
     plt.show()
 
 # 한글 출력 테스트
-plt.text(0.2, 0.3, '한글', size=100)
+plt.text(0.25, 0.35, '한글', size=100)
 plt.show()
 
 ################################################################################################################################
@@ -59,7 +60,7 @@ hidden_size = 256
 encoder1 = EncoderRNN(input_lang.n_morps, hidden_size).to(device)
 attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_morps, dropout_p=0.1).to(device)
 
-plot_losses = trainIters(encoder1, attn_decoder1, 10000, pairs, print_every=1000)
+plot_losses = trainIters(encoder1, attn_decoder1, n_learn, pairs, print_every=10000)
 torch.save(encoder1, 'torch_save/EncoderRNN.pth')
 torch.save(attn_decoder1, 'torch_save/AttnDecoderRNN.pth')
 showPlot(plot_losses)
