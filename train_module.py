@@ -117,7 +117,6 @@ def trainIters(encoder, decoder, n_iters, pairs, print_every=1000, plot_every=10
                       for i in range(n_iters)]
 
     criterion = nn.NLLLoss()
-    print(len(training_pairs))
 
     for iter in tqdm(range(1, n_iters + 1)):
         training_pair = training_pairs[iter - 1]

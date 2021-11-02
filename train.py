@@ -8,6 +8,7 @@ import torch
 from model import EncoderRNN, AttnDecoderRNN
 from train_module import trainIters, evaluate, evaluateRandomly 
 from train_module import device
+from modules.plot import plot_loss_graph
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -74,13 +75,17 @@ print_every = args.print_every
 encoder1 = EncoderRNN(input_lang.n_morps, hidden_size).to(device)
 attn_decoder1 = AttnDecoderRNN(hidden_size, output_lang.n_morps, dropout_p=0.1).to(device)
 
-plot_losses = trainIters(encoder1, attn_decoder1, n_learn, pairs, print_every)
-torch.save(encoder1, 'torch_save/EncoderRNN.pth')
-torch.save(attn_decoder1, 'torch_save/AttnDecoderRNN.pth')
-showPlot(plot_losses)
+losses = trainIters(encoder1, attn_decoder1, n_learn, pairs, print_every)
+torch.save(encoder1, 'EncoderRNN.pth')
+torch.save(attn_decoder1, 'AttnDecoderRNN.pth')
 
-encoder1 = torch.load('torch_save/EncoderRNN.pth')
-attn_decoder1 = torch.load('torch_save/AttnDecoderRNN.pth')
+with open('losses.pkl', 'w') as f:
+    pickle.dump(losses)
+showPlot(losses)
+plot_loss_graph(losses)
+
+encoder1 = torch.load('EncoderRNN.pth')
+attn_decoder1 = torch.load('AttnDecoderRNN.pth')
 
 evaluateRandomly(encoder1, attn_decoder1, pairs, output_lang, device)
 
