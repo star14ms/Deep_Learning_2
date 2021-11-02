@@ -68,7 +68,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, save_txt_name
         # txt파일로 기록
         skip_num = 0
         with open(f'{save_txt_name}.txt', 'a', encoding="utf-8") as f: 
-            f.write('$;{}\t{}\t{}\n\n'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), url, titles[i]))
+            # if.write('$;{}\t{}\t{}\n\n'.format(dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), url, titles[i]))
             for cmt in comments:
                 cmt = cmt.text.replace('\n', ' ')
                 if len(cmt)==0: 
@@ -76,7 +76,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, save_txt_name
                 else:
                     f.write(cmt + '\n')
                     # f.write(cmt + ('.\n' if cmt[-1] not in '.?!' else '\n'))
-            f.write('\n')
+            # f.write('\n')
         
         # 댓글 수집한 동영상 목록에 현재 url추가
         with open(f'{urls_txt_name}.txt', 'a', encoding="utf-8") as f:
@@ -118,11 +118,11 @@ def scroll_down(driver, n_scroll_down=500, waiting_time=0.1, break_num=80):
 ##### 변수 선언 #########################################################################################################
 
 start_time = t.time()
-n_scroll_down = 30
+n_scroll_down = 500
 
 # 브라우저 원격 접속 인터페이스
-# driver_path = r'C:\Users\user\Documents\Coding\chromedriver.exe' # r'C:\Users\danal\Documents\programing\chromedriver.exe'
-driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
+driver_path = r'C:\Users\user\Documents\Coding\chromedriver.exe'
+# driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
 driver = webdriver.Chrome(driver_path)
 driver.set_window_position(0, 0)
 driver.set_window_size(800, 800)
@@ -136,7 +136,7 @@ comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
 # day = dt.date.today().strftime('%y%m%d')
-day = "211031"
+day = "211101"
 save_txt_name = f'data/YT_cmts_{day}'
 urls_txt_name = f'data/YT_cmts_urls_{day}'
 
