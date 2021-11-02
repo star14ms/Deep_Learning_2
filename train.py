@@ -17,7 +17,7 @@ import matplotlib.font_manager as fm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211031_lang_corpus.pkl", type=str, required=False,
-                    help="path of .pkl file that you got after running 2_preprocess.py")
+                    help="path of .pkl file you got after running 2_preprocess.py")
 parser.add_argument("--n_learn", default=100000, type=int, required=False,
                     help="n sentence will learn")
 parser.add_argument("--hidden_size", default=256, type=int, required=False,

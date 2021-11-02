@@ -98,7 +98,7 @@ class RnnlmTrainer:
         return batch_x, batch_t
 
     def fit(self, xs, ts, max_epoch=10, batch_size=20, time_size=35,
-            max_grad=None, eval_interval=10, save_per_eval=10, verbose=False, start_time=None):
+            max_grad=None, eval_interval=10, save_per_eval=10, verbose=False, start_time=None, pkl_dir='saved_pkls'):
         
         if start_time==None: start_time = t.time()
         data_size = len(xs)
@@ -159,7 +159,7 @@ class RnnlmTrainer:
                     if eval_num % save_per_eval == 0: ### iters+1 %
                         learning_time = model.learning_time + t.time()-start_time
                         str_learning_time = time.str(learning_time, hms=True, join='')
-                        model.save_params(str_learning_time, round(ppl, 1))
+                        model.save_params(str_learning_time, round(ppl, 1), pkl_dir)
                         self.save_pplist(str_learning_time, round(ppl, 1))
                         eval_num = 0
                         print()
