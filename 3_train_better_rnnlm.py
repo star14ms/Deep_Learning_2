@@ -96,7 +96,7 @@ print() # len(trainer.ppl_list)
 best_ppl = float('inf')
 start_time = t.time()
 for epoch in range(max_epoch):
-    trainer.fit(xs, ts, max_epoch=1, batch_size=batch_size,
+    trainer.fit(xs, ts, max_epoch=1, batch_size=batch_size, pkl_dir=pkl_dir,
                 time_size=time_size, max_grad=max_grad, verbose=False, start_time=start_time)
     
     model.reset_state()
