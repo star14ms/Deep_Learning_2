@@ -38,7 +38,7 @@ JONGSUNG_LIST = [
 ]
 
 
-class Lang:
+class Vocab:
     """
     단어 사전
     ----------
@@ -118,13 +118,13 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
 
     Return
     ----------
-    return `Lang(Class), Corpus(np.ndarray[n]), Sentences_ids(list)`
+    return `Vocab(Class), Corpus(np.ndarray[n]), Sentences_ids(list)`
 
-    `Lang`: vocab
+    `Vocab`: 단어 사전
 
     `Corpus`: 말뭉치를 형태소 분해한 id뭉치
 
-    `Sentences_ids`: list[sentence1_ids, sentence2_ids, ...]
+    `Sentences_ids`: 문장의 형태소 id 리스트 list[sentence1_ids, sentence2_ids, ...]
     """
 
     language = language.lower()
@@ -144,7 +144,7 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
         if loaded_data:
             lang.addWords(morps)
         else:
-            lang = Lang("Korean", morps)
+            lang = Vocab("Korean", morps)
         if start_time != None: print(time.str_delta(start_time), "형태소 사전 만들기 완료!")
         
         corpus = np.array([lang.morp2id[morp][wclass] for morp, wclass in tqdm(morps)])

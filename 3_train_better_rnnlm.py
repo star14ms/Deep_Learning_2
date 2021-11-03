@@ -60,7 +60,7 @@ dropout = args.dropout # 0.5
 
 # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
 with open(args.data_file, 'rb') as f:
-    (lang, corpus_all, _) = pickle.load(f).values()
+    (vocab, corpus_all, _) = pickle.load(f).values()
 print("학습 데이터 로드 성공!")
 
 max_iter = round(len(corpus_all)*0.8/batch_size/time_size/100)*100
@@ -76,7 +76,7 @@ if config.GPU:
     corpus_val = to_gpu(corpus_val)
     corpus_test = to_gpu(corpus_test)
 
-vocab_size = lang.n_morps ### len(morp_to_id) < len(id_to_morp)
+vocab_size = vocab.n_morps ### len(morp_to_id) < len(id_to_morp)
 print("형태소 사전 단어 수:", vocab_size)
 xs = corpus_train[:-1]
 ts = corpus_train[1:]

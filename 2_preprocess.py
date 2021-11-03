@@ -45,21 +45,22 @@ if __name__ == '__main__':
 
 
     print('\n2) 형태소로 분해 중...')
-    (lang, corpus, sentences_ids) = preprocess(sentences, loaded_data, start_time=start_time)
-    print(f'2) 형태소로 분해 완료! (형태소 개수: {lang.n_morps}개)\n{time.str_delta(start_time)}')
+    (vocab, corpus, sentences_ids) = preprocess(sentences, loaded_data, start_time=start_time)
+    print(f'2) 형태소로 분해 완료! (형태소 개수: {vocab.n_morps}개)\n{time.str_delta(start_time)}')
 
 
     with open(f'{save_path}.pkl', 'wb') as f:
-        pickle.dump({'lang': lang, 'corpus': corpus, 'sentences_ids': sentences_ids}, f)  
-    print('\n저장한 형태소 사전 단어 수:', lang.n_morps)
+        pickle.dump({'vocab': vocab, 'corpus': corpus, 'sentences_ids': sentences_ids}, f)  
+    print('\n저장한 형태소 사전 단어 수:', vocab.n_morps)
 
+    # 테스트
     input("\n전처리 데이터 테스트 (Press Enter)")
     with open(f'{save_path}.pkl', 'rb') as f:
-        (lang, corpus, sentences_ids) = pickle.load(f).values()
+        (vocab, corpus, sentences_ids) = pickle.load(f).values()
 
     print(corpus[:100])
     for i in range(20):
-        print(i, lang.id2morp[i])
+        print(i, vocab.id2morp[i])
     
     while input() not in ['break','exit','/b','/e']: 
     # for i, sent_ids in enumerate(sentences_ids):

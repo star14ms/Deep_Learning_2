@@ -24,8 +24,8 @@ args = parser.parse_args()
 ##### 변수 선언 #########################################################################################################
 
 with open(args.data_file, 'rb') as f:
-    (lang, _, _) = pickle.load(f).values()
-vocab_size = len(lang.id2morp)
+    (vocab, _, _) = pickle.load(f).values()
+vocab_size = len(vocab.id2morp)
 
 model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
 model.load_params(args.load_model, args.pkl_dir)
@@ -46,6 +46,6 @@ if __name__ == '__main__':
             # print('영어는 인식 못해 ㅜㅜ')
             # continue
         
-        text = generate_sentence(start_words, model, lang.morp2id, lang.id2morp, args.one_sentence, verbose=False)
+        text = generate_sentence(start_words, model, vocab.morp2id, vocab.id2morp, args.one_sentence, verbose=False)
         if text is not None: print('\n'+text)
         model.reset_state()
