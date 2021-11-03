@@ -15,7 +15,7 @@ parser.add_argument("--wordvec_size", default=512, type=int, required=False,
                     help="wordvec_size")
 parser.add_argument("--hidden_size", default=512, type=int, required=False,
                     help="hidden_size")
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_lang_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")

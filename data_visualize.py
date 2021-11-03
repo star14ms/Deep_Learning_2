@@ -9,15 +9,12 @@ from common.util import nouns
 import numpy as np
 
 # 학습 데이터 파일 경로
-data_file = r'data/YT_cmts_211101.txt'
-
-# with open('saved_pkls/YT_cmts_morps_to_id_Kkma.pkl', 'rb') as f:
-#     (corpus, morp_to_id, id_to_morp) = pickle.load(f)
-with open('saved_pkls/YT_cmts_211101_lang_corpus.pkl', 'rb') as f:
-    (lang, corpus, _) = pickle.load(f).values()
-morp_to_id, id_to_morp = lang.morp2id, lang.id2morp
+with open('saved_pkls/YT_cmts_211101_vocab_corpus.pkl', 'rb') as f:
+    (vocab, corpus, _) = pickle.load(f).values()
+morp_to_id, id_to_morp = vocab.morp2id, vocab.id2morp
 
 # 폰트 설정
+fm._rebuild()
 font_path = r'common/font/주아체.ttf' # 한글 폰트 경로
 font_name = fm.FontProperties(fname=font_path, size=50).get_name()
 print(font_name)
@@ -25,11 +22,16 @@ plt.rc('font', family=font_name)
 # plt.rcParams["font.family"] = "배달의민족 주아" #? 자꾸 인식 못함
 plt.rcParams["font.size"] = 13
 
+# 한글 출력 테스트
+plt.text(0.25, 0.35, '한글', size=100)
+plt.show()
+
 # 학습 데이터의 단어들 비중 순서로 그래프 그리기
-# c = open(data_file, encoding='utf8').read() # constitution, ratings
+print('\n명사만 추출 중...')
+# c = open(r'data/YT_cmts_211101.txt', encoding='utf8').read()
+# c = kolaw.open('./constitution.txt').read() # constitution, ratings
 # words = Text(Okt().nouns(c[:10000]), name="kolaw")
 
-print('\n명사만 추출 중...')
 words = Text(nouns(corpus, morp_to_id, id_to_morp), name="morps")
 samples = [item for item, _ in words.vocab().most_common(30)]
 freqs = [words.vocab()[sample] for sample in samples]

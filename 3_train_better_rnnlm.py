@@ -14,7 +14,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_lang_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
                     help="to save model directory")

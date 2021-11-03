@@ -10,7 +10,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_path", default='data/YT_cmts_211101.txt', type=str, required=False,
                     help="path of youtube comments .txt file you can got after running 1_scrap_youtube_comment.py")
-parser.add_argument("--save_path", default='saved_pkls/YT_cmts_211101_lang_corpus', type=str, required=False,
+parser.add_argument("--save_path", default='saved_pkls/YT_cmts_211101_vocab_corpus', type=str, required=False,
                     help="to save model directory")
 parser.add_argument("--load_path", default=None, type=str, required=False,
                     help="to save model directory")
@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     print('\n2) 형태소로 분해 중...')
     (vocab, corpus, sentences_ids) = preprocess(sentences, loaded_data, start_time=start_time)
-    print(f'2) 형태소로 분해 완료! (형태소 개수: {vocab.n_morps}개)\n{time.str_delta(start_time)}')
+    print(f'2) 형태소로 분해 완료! (형태소 총 개수: {len(corpus)}개)\n{time.str_delta(start_time)}')
 
 
     with open(f'{save_path}.pkl', 'wb') as f:
