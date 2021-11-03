@@ -9,11 +9,11 @@ from common.util import nouns
 import numpy as np
 
 # 학습 데이터 파일 경로
-data_file = r'data/YT_cmts_211031.txt'
+data_file = r'data/YT_cmts_211101.txt'
 
 # with open('saved_pkls/YT_cmts_morps_to_id_Kkma.pkl', 'rb') as f:
 #     (corpus, morp_to_id, id_to_morp) = pickle.load(f)
-with open('saved_pkls/YT_cmts_211031_lang_corpus.pkl', 'rb') as f:
+with open('saved_pkls/YT_cmts_211101_lang_corpus.pkl', 'rb') as f:
     (lang, corpus, _) = pickle.load(f).values()
 morp_to_id, id_to_morp = lang.morp2id, lang.id2morp
 

@@ -4,23 +4,30 @@ from modules.rnnlm_gen import BetterRnnlmGen
 import pickle
 from konlpy.tag import Kkma
 from modules.make_sentence import generate_sentence
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--load_model", default='ln_3680000 lt_5h59m43s ppl_266.3 BetterRnnlm params', type=str, required=False,
+                    help="path of model (.pkl)")
+parser.add_argument("--wordvec_size", default=512, type=int, required=False,
+                    help="wordvec_size")
+parser.add_argument("--hidden_size", default=512, type=int, required=False,
+                    help="hidden_size")
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_lang_corpus.pkl", type=str, required=False,
+                    help="path of .pkl file you got after running 2_preprocess.py")
+parser.add_argument("--one_sentence", default=True, type=bool, required=False,
+                    help="generate one sentence or 100형태소")
+args = parser.parse_args()
 
 ##### 변수 선언 #########################################################################################################
 
+with open(args.data_file, 'rb') as f:
+    (lang, _, _) = pickle.load(f).values()
+vocab_size = len(lang.id2morp)
 
-load_model_pkl = 'ln_30160000 lt_53h57m54s ppl_94.7 BetterRnnlm params'
-morp_to_id_pkl = 'saved_pkls/YT_cmts_morps_to_id_Kkma.pkl'
-
-with open(morp_to_id_pkl, 'rb') as f:
-    (_, morp_to_id, id_to_morp) = pickle.load(f)
-vocab_size = len(id_to_morp)
-
-model = BetterRnnlmGen(vocab_size)
-model.load_params(load_model_pkl)
+model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
+model.load_params(args.load_model)
 kkma = Kkma()
-one_sentence = True # or 100형태소
-
 
 ##### main #####################################################################################################################
 
@@ -37,6 +44,6 @@ if __name__ == '__main__':
             # print('영어는 인식 못해 ㅜㅜ')
             # continue
         
-        text = generate_sentence(start_words, model, morp_to_id, id_to_morp, one_sentence=one_sentence, verbose=False)
+        text = generate_sentence(start_words, model, lang.morp2id, lang.id2morp, args.one_sentence, verbose=False)
         if text is not None: print('\n'+text)
         model.reset_state()
