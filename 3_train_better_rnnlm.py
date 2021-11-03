@@ -4,7 +4,7 @@ from common import config
 # ==============================================
 # config.GPU = True
 # ==============================================
-from common.optimizer import SGD
+from common.optimizer import optimizers
 from common.trainer import RnnlmTrainer
 from common.util import eval_perplexity, to_gpu
 from modules.better_rnnlm import BetterRnnlm
@@ -28,7 +28,7 @@ parser.add_argument("--batch_size", default=32, type=int, required=False,
                     help="batch_size")
 parser.add_argument("--time_size", default=50, type=int, required=False,
                     help="sequence size")
-parser.add_argument("--lr", default=10, type=float, required=False,
+parser.add_argument("--lr", default=0.001, type=float, required=False,
                     help="learning rate")
 parser.add_argument("--max_epoch", default=20, type=int, required=False,
                     help="max_epoch")
@@ -36,6 +36,8 @@ parser.add_argument("--max_grad", default=0.25, type=float, required=False,
                     help="max_grad")
 parser.add_argument("--dropout", default=0.5, type=float, required=False,
                     help="dropout")
+parser.add_argument("--optimizer", default='adam', type=str, required=False,
+                    help="sgd | momentum | nesterov | adagrad | rmsprop | adam ")
 args = parser.parse_args()
 
 
@@ -74,15 +76,15 @@ if config.GPU:
     corpus_val = to_gpu(corpus_val)
     corpus_test = to_gpu(corpus_test)
 
-vocab_size = lang.n_morps 
+vocab_size = lang.n_morps ### len(morp_to_id) < len(id_to_morp)
 print("형태소 사전 단어 수:", vocab_size)
 xs = corpus_train[:-1]
 ts = corpus_train[1:]
 
 
 # 신경망과 훈련 모듈 만들거나 가져오기 (그래프 출력)
-model = BetterRnnlm(vocab_size, wordvec_size, hidden_size, dropout) ### len(morp_to_id) < len(id_to_morp)
-optimizer = SGD(lr) ### Adam -> overflow
+model = BetterRnnlm(vocab_size, wordvec_size, hidden_size, dropout) 
+optimizer = optimizers[args.optimizer.lower()](lr) ### Adam -> overflow
 trainer = RnnlmTrainer(model, optimizer)
 
 if load_model != None:

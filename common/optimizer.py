@@ -125,3 +125,13 @@ class Adam:
             self.v[i] += (1 - self.beta2) * (grads[i]**2 - self.v[i])
             
             params[i] -= lr_t * self.m[i] / (np.sqrt(self.v[i]) + 1e-7)
+
+
+optimizers = {
+    'sgd': SGD,
+    'momentum': Momentum,
+    'nesterov': Nesterov,
+    'adagrad': AdaGrad,
+    'rmsprop': RMSprop,
+    'adam': Adam,
+}
