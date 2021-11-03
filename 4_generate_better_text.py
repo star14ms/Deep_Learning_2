@@ -9,6 +9,8 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--load_model", default='ln_3680000 lt_5h59m43s ppl_266.3 BetterRnnlm params', type=str, required=False,
                     help="path of model (.pkl)")
+parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
+                    help="to save model directory")
 parser.add_argument("--wordvec_size", default=512, type=int, required=False,
                     help="wordvec_size")
 parser.add_argument("--hidden_size", default=512, type=int, required=False,
@@ -26,7 +28,7 @@ with open(args.data_file, 'rb') as f:
 vocab_size = len(lang.id2morp)
 
 model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
-model.load_params(args.load_model)
+model.load_params(args.load_model, args.pkl_dir)
 kkma = Kkma()
 
 ##### main #####################################################################################################################
