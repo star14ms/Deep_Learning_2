@@ -8,7 +8,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--load_model", default='ln_3680000 lt_5h59m43s ppl_266.3 BetterRnnlm params', type=str, required=False,
-                    help="path of model (.pkl)")
+                    help="path of model (.pkl) you can got after running 3_train_better_rnnlm.py")
 parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
                     help="to save model directory")
 parser.add_argument("--wordvec_size", default=512, type=int, required=False,
@@ -16,7 +16,7 @@ parser.add_argument("--wordvec_size", default=512, type=int, required=False,
 parser.add_argument("--hidden_size", default=512, type=int, required=False,
                     help="hidden_size")
 parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_lang_corpus.pkl", type=str, required=False,
-                    help="path of .pkl file you got after running 2_preprocess.py")
+                    help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")
 args = parser.parse_args()
