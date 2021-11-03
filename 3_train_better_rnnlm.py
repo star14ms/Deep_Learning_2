@@ -28,7 +28,7 @@ parser.add_argument("--batch_size", default=32, type=int, required=False,
                     help="batch_size")
 parser.add_argument("--time_size", default=50, type=int, required=False,
                     help="sequence size")
-parser.add_argument("--lr", default=0.001, type=float, required=False,
+parser.add_argument("--lr", default=10.0, type=float, required=False,
                     help="learning rate")
 parser.add_argument("--max_epoch", default=20, type=int, required=False,
                     help="max_epoch")
@@ -36,7 +36,7 @@ parser.add_argument("--max_grad", default=0.25, type=float, required=False,
                     help="max_grad")
 parser.add_argument("--dropout", default=0.5, type=float, required=False,
                     help="dropout")
-parser.add_argument("--optimizer", default='adam', type=str, required=False,
+parser.add_argument("--optimizer", default='sgd', type=str, required=False,
                     help="sgd | momentum | nesterov | adagrad | rmsprop | adam ")
 args = parser.parse_args()
 

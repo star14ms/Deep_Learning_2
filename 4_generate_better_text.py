@@ -29,7 +29,6 @@ vocab_size = len(vocab.id2morp)
 
 model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
 model.load_params(args.load_model, args.pkl_dir)
-kkma = Kkma()
 
 ##### main #####################################################################################################################
 
