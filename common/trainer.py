@@ -160,7 +160,7 @@ class RnnlmTrainer:
                         learning_time = model.learning_time + t.time()-start_time
                         str_learning_time = time.str(learning_time, hms=True, join='')
                         model.save_params(str_learning_time, round(ppl, 1), pkl_dir)
-                        self.save_pplist(str_learning_time, round(ppl, 1), pkl_dir)
+                        self.save_pplist(str_learning_time, round(ppl, 1), pkl_dir=pkl_dir)
                         eval_num = 0
                         print()
 
@@ -188,7 +188,7 @@ class RnnlmTrainer:
         with open(pkl_dir+'/'+file_name, 'wb') as f:
             pickle.dump(pplist_data, f)
 
-        if delete_pre_save: self.delete_pkl(remove_pplist=True)
+        if delete_pre_save: self.delete_pkl(remove_pplist=True, pkl_dir=pkl_dir)
         self.pre_saved_pkl = (pkl_dir+'/'+file_name).replace('pplist', 'params')
 
         print("ppl list 저장 성공!")

@@ -102,7 +102,7 @@ class Vocab:
 
 def preprocess(texts, loaded_data=None, language='Korean', start_time=None, 
     Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True
-) -> tuple:
+) -> (tuple):
     """
     데이터 전처리
     ----------
@@ -161,7 +161,7 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
             return (lang, corpus, sentences_ids)
 
 
-def make_morps_sentences(texts, Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True):
+def make_morps_sentences(texts, Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True) -> (list):
     """
     형태소 분석된 문장 list 만들기
 
@@ -247,7 +247,7 @@ def make_morps_sentences(texts, Okt_nomalize=True, del_short_sound=True, del_rep
     return morps_sentences
 
 
-def nomalize_short_sounds(sentence: str, skip_num: int = 30, max_n_short: int = 18) -> str:
+def nomalize_short_sounds(sentence: str, skip_num: int = 30, max_n_short: int = 18) -> (str):
     """
     반복되는 초성, 중성, 종성 제거 (미완성된 글자)
 
@@ -277,7 +277,7 @@ def nomalize_short_sounds(sentence: str, skip_num: int = 30, max_n_short: int = 
     return sentence2
 
 
-def delete_repeated_latter(sentence: str, len_kkma_delay: int = 18) -> str:
+def delete_repeated_latter(sentence: str, len_kkma_delay: int = 18) -> (str):
     """
     Parameters
     ----------

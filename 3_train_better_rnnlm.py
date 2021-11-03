@@ -84,7 +84,7 @@ ts = corpus_train[1:]
 
 # 신경망과 훈련 모듈 만들거나 가져오기 (그래프 출력)
 model = BetterRnnlm(vocab_size, wordvec_size, hidden_size, dropout) 
-optimizer = optimizers[args.optimizer.lower()](lr) ### Adam -> overflow
+optimizer = optimizers[args.optimizer.lower()](lr) ### Adam -> lr: 0.0001
 trainer = RnnlmTrainer(model, optimizer)
 
 if load_model != None:
