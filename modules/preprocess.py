@@ -10,8 +10,8 @@ from konlpy.tag import Kkma, Okt
 from common.util import time
 from modules.translate_wclass import pos_ko, tag2morp
 from modules.make_sentence import pos_to_sentence
-from model import MAX_LENGTH
 
+MAX_LENGTH = 50
 
 konlpy.jvm.init_jvm(jvmpath=None, max_heap_size=8192)
 kkma = Kkma()

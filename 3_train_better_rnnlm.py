@@ -100,7 +100,7 @@ start_time = t.time()
 for epoch in range(max_epoch):
     trainer.fit(xs, ts, max_epoch=1, batch_size=batch_size, pkl_dir=pkl_dir,
                 time_size=time_size, max_grad=max_grad, verbose=False, start_time=start_time)
-    
+
     model.reset_state()
     ppl = eval_perplexity(model, corpus_val, batch_size, time_size)
     print('valid perplexity: ', ppl)
@@ -118,5 +118,5 @@ for epoch in range(max_epoch):
 
 # 테스트
 model.reset_state()
-ppl_test = eval_perplexity(model, corpus_test)
+ppl_test = eval_perplexity(model, corpus_test, batch_size, time_size)
 print('test perplexity: ', ppl_test)
