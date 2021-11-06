@@ -122,8 +122,8 @@ start_time = t.time()
 n_scroll_down = 500
 
 # 브라우저 원격 접속 인터페이스
-driver_path = r'C:\Users\user\Documents\Coding\chromedriver.exe'
-# driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
+# driver_path = r'C:\Users\user\Documents\Coding\chromedriver.exe'
+driver_path = r'C:\Users\danal\Documents\programing\chromedriver.exe'
 driver = webdriver.Chrome(driver_path)
 driver.set_window_position(0, 0)
 driver.set_window_size(800, 800)

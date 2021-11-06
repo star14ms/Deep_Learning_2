@@ -138,7 +138,6 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
 
         morps = []
         for sentence in morps_sentences:
-            print(sentence)
             for morp_wclass_tuple in sentence:
                 morps.append(morp_wclass_tuple)
         morps = pos_ko(morps)

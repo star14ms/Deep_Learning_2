@@ -1,5 +1,5 @@
 import numpy as np
-from common.config import GPU
+from common.gpu import GPU
 
 class MatMul:
     def __init__(self, W):

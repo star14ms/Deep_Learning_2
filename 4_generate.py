@@ -13,7 +13,7 @@ parser.add_argument("--load_model", default='saved_models/LSTM ep_6 ppl_480.8.pt
                     help="path of model (.pkl, .pth) you can got after running 3_train_better_rnnlm.py or train.py")
 parser.add_argument("--config", default="config_LSTM.json", type=str, required=False,
                     help="config file")
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")

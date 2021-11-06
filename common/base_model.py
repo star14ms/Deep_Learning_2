@@ -5,7 +5,7 @@ import os
 import pickle
 from common.np import *
 from common.util import to_gpu, to_cpu, time
-from common.config import GPU
+from common.gpu import GPU
 
 class BaseModel:
     def __init__(self): ### 자신을 상속하면 실행 안 됨

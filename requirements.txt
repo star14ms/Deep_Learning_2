@@ -1,0 +1,9 @@
+selenium
+konlpy
+gensim
+numpy
+matplotlib
+jamo
+tqdm
+torch
+argparse
