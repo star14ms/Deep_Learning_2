@@ -7,7 +7,7 @@ import torch.nn as nn
 
 from modules.preprocess import MAX_LENGTH
 from common.util import eval_perplexity, time
-from print import add_spaces_until_endline as add_spaces
+from common.print import add_spaces_until_endline as line
 import time as t
 import argparse
 
@@ -16,7 +16,7 @@ import argparse
 start_time = t.time()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config", default="config.json", type=str, required=False,
+parser.add_argument("--config", default="LSTM_config.json", type=str, required=False,
                     help="config file")
 parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
@@ -24,6 +24,8 @@ parser.add_argument("--epoch", default=3, type=int, required=False,
                     help="epoch")
 parser.add_argument("--batch", default=32, type=int, required=False,
                     help="batch")
+parser.add_argument("--load_model", default="LSTM ep_3 ppl_482.7.pth", type=str, required=False,
+                    help="path of trained model (.pth)")
 args = parser.parse_args()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -55,7 +57,7 @@ def split_data(corpus, ratio=[0.8, 0.1, 0.1]):
     train_data = corpus[ :len_train]
     val_data = corpus[len_train : len_train+len_val]
     test_data = corpus[len_train+len_val: ]
-    print("\ntrain {}, val {}, test {} data".format(len(train_data), len(val_data), len(test_data)))
+    print("\ntrain {}, val {}, test {} morps".format(len(train_data), len(val_data), len(test_data)))
     
     return train_data, val_data, test_data
 
@@ -116,7 +118,7 @@ class Trainer:
                 ppl = torch.exp(torch.tensor([local_loss / print_every])).item()
                 elapsed = time.str_delta(self.start_time, join=':')
                 string = f'\r{elapsed} | iter {iter}/{max_iters} | ppl %.1f' % ppl
-                print(add_spaces(string))
+                print(line(string))
                 trainer.ppl_list.append(float(ppl))
                 local_loss = 0
 
@@ -126,25 +128,24 @@ class Trainer:
 train_data, val_data, test_data = split_data(corpus)
 
 model = LSTM(config)
+last_epoch = 0 if not args.load_model else model.load(args.load_model)[0]
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-0, momentum=0.9, nesterov=True)
 trainer = Trainer(model, train_data, loss_fn, optimizer, n_batch, time_size, device, start_time)
 
-
-for epoch in range(1, n_epoch+1):
-    print(f'\nEpoch {epoch}\n')
+print('-' * 50)
+for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
+    print(f'Epoch {epoch}')
 
     ppl = trainer.train_epoch()
     print('train perplexity: ', ppl) # perplexity: 다음에 올 단어 후보 수
 
     model.eval()
     with torch.no_grad():
-        ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True)
-        print('valid perplexity: ', ppl)
-    
-    model.save(epoch, ppl, f"ep_{epoch}-ppl_{ppl}.pth")
+        ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
+        
+    model.save(epoch, ppl, f"{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
     print('-' * 50)
 
 with torch.no_grad():
-    ppl = eval_perplexity(model, test_data, n_batch, time_size, loss_fn, use_torch=True)
-    print('valid perplexity: ', ppl)
+    ppl = eval_perplexity(model, test_data, n_batch, time_size, loss_fn, use_torch=True, data_type="test")

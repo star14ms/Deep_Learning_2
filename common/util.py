@@ -125,8 +125,8 @@ def clip_grads(grads, max_norm):
             grad *= rate
 
 
-def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, use_torch=False):
-    print('evaluating perplexity ...')
+def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, use_torch=False, data_type="eval"):
+    print('\nevaluating perplexity ...')
     corpus_size = len(corpus)
     total_loss, loss_cnt = 0, 0
     max_iters = (corpus_size - 1) // (batch_size * time_size)
@@ -161,8 +161,11 @@ def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, us
         sys.stdout.write('\r%d / %d' % (iters, max_iters))
         sys.stdout.flush()
 
+    ppl = np.exp(total_loss / max_iters).item()
+
     print()
-    return np.exp(total_loss / max_iters)
+    print(f'{data_type} perplexity: ', ppl)
+    return ppl
 
 
 def eval_seq2seq(model, question, correct, id_to_char,

@@ -90,11 +90,25 @@ def len_str(text):
     return len_str
 
 
-def add_spaces_until_endline(text: str = ""):
-    max_len = _screen_shape_wrapper()(sys.stdout)[0] + 1
+def rstrip_until_endline(text, len, max_len, ):
+    if len > max_len:
+        over_len = len - max_len
+        idx = -1
+        while len_str(text[idx:]) < over_len:
+            idx -= 1
+        text = text[:idx]
+    
+    return text
+
+
+def add_spaces_until_endline(text: str = "", shortening_end='..', align_right_side: bool = False):
     text = RE_ANSI.sub('', text)
-    del_len = sum(1 if east_asian_width(ch) in 'FW' else 0 for ch in _unicode(text))
+    max_len = _screen_shape_wrapper()(sys.stdout)[0] + 1 - len_str(shortening_end)
+    
+    text2 = rstrip_until_endline(text, len_str(text), max_len)
+    if shortening_end and text!=text2: 
+        text2 = text2 + shortening_end
 
-    return text.ljust(max_len - del_len)
+    del_len = sum(1 if east_asian_width(ch) in 'FW' else 0 for ch in _unicode(text2))
 
-
+    return text2.ljust(max_len - del_len) if not align_right_side else text2.rjust(max_len - del_len)

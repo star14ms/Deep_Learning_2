@@ -3,7 +3,7 @@ import sys, os
 import time as t, datetime as dt
 from common.util import time
 from selenium.webdriver.common.keys import Keys
-
+from common.print import add_spaces_until_endline as line
 
 ##### 함수 선언 ###############################################################################################################
 
@@ -43,7 +43,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, save_txt_name
         
         # 댓글 수집한 동영상 목록에 있던 url이면 건너뛰기
         if cmts_already_saved_urls!=None and url in cmts_already_saved_urls:
-            print("\r{0} | 완료 | {1}".format(i+1, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..')))
+            print(line("\r{0} | 완료 | {1}".format(i+1, titles[i])))
             continue
 
         # 웹 사이트 가져오기
@@ -62,7 +62,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, save_txt_name
         comments = driver.find_elements_by_id(comment_block)
     
         if len(comments) < 100:
-            print("\r{0} | 스킵 | {1}".format(i+1, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..')))
+            print(line("\r{0} | 스킵 | {1}".format(i+1, titles[i])))
             continue
 
         # txt파일로 기록
@@ -83,7 +83,7 @@ def get_youtube_video_comment(driver, URLs, titles, comment_block, save_txt_name
             f.write(url+'\t'+titles[i]+'\n')
     
         saved_cmts_num += len(comments)-skip_num
-        print(("\r{0} | {1}개 | {2}".format(i+1, len(comments)-skip_num, (titles[i] if len(titles[i])<33 else titles[i][:33]+'..'))).ljust(30))
+        print(line("\r{0} | {1}개 | {2}".format(i+1, titles[i])))
     
     print('\n수집한 댓글 수: %d개'% saved_cmts_num)
 
