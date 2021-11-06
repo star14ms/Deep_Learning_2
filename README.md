@@ -6,8 +6,8 @@
 
 1. 1_scrap_youtube_comment.py
 2. 2_preprocess.py (dataset_visualization.py)
-3. 3_train_better_rnnlm.py
-4. 4_generate_better_text.py (bot.py, app.py)
+3. 3_train.py
+4. 4_generate.py (bot.py, app.py)
 
 ## 필요 라이브러리
 

@@ -1,14 +1,14 @@
-from model import LSTM, Config
-import pickle
-from tqdm import tqdm
-
-import torch
-import torch.nn as nn
-
-from modules.preprocess import MAX_LENGTH
+from model import LSTM
+from common.config import Config
 from common.util import eval_perplexity, time
 from common.print import add_spaces_until_endline as line
+from modules.preprocess import MAX_LENGTH
+
+from tqdm import tqdm
+import torch
+import torch.nn as nn
 import time as t
+import pickle
 import argparse
 
 ################################################################################################################################

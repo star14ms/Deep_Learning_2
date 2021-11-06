@@ -1,9 +1,10 @@
+from common.util import time
 from modules.preprocess import preprocess, kkma
 from modules.make_sentence import pos_to_sentence
-from common.util import time
+from os.path import isfile
+
 import time as t
 import pickle
-from os.path import isfile
 import random
 import argparse
 

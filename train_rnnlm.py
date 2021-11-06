@@ -1,9 +1,10 @@
 # coding: utf-8
-from common.config import GPU
+from common.gpu import GPU
 # GPU에서 실행할 경우 주석 해제 (cupy)
 # ==============================================
 # GPU = True
 # ==============================================
+from common.config import Config
 from common.optimizer import optimizers
 from common.trainer import RnnlmTrainer
 from common.util import eval_perplexity, to_gpu
@@ -11,7 +12,6 @@ from modules.better_rnnlm import BetterRnnlm
 import pickle
 import time as t
 import argparse
-from config import Config
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,

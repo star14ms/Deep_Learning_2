@@ -1,5 +1,5 @@
 # coding: utf-8
-from common.config import GPU
+from common.gpu import GPU
 
 
 if GPU:

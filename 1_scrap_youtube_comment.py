@@ -1,9 +1,10 @@
 from selenium import webdriver
-import sys, os
-import time as t, datetime as dt
-from common.util import time
 from selenium.webdriver.common.keys import Keys
 from common.print import add_spaces_until_endline as line
+from common.util import time
+
+import sys, os
+import time as t, datetime as dt
 
 ##### 함수 선언 ###############################################################################################################
 

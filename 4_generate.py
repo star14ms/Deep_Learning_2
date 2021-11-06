@@ -1,12 +1,11 @@
 # coding: utf-8
-from common.np import *
-from modules.rnnlm_gen import BetterRnnlmGen
-import pickle
-from modules.make_sentence import generate_sentence
-import argparse
-
 from model import LSTM
-from config import Config
+from common.np import *
+from common.config import Config
+from modules.rnnlm_gen import BetterRnnlmGen
+from modules.make_sentence import generate_sentence
+import pickle
+import argparse
 
 
 parser = argparse.ArgumentParser()
