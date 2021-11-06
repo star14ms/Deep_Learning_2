@@ -485,8 +485,8 @@ kkma_word_class = [kkma_word_class_lv1, kkma_word_class_lv2, kkma_word_class_lv3
 word_class = {'komoran': komoran_word_class, 'kkma': kkma_word_class}
 
 for class_dict in komoran_word_class + kkma_word_class:
-    class_dict['[SOS]'] = '[시작]'
-    class_dict['[EOS]'] = '[끝]'
+    class_dict['[SOS]'] = '[SOS]'
+    class_dict['[EOS]'] = '[EOS]'
 
 
 def pos_ko(pos, translate_level=3, konlpy_tag='kkma'):
@@ -499,16 +499,10 @@ def pos_ko(pos, translate_level=3, konlpy_tag='kkma'):
         print("Error: 지원하는 konlpy tag: ['komoran', 'kkma'] (기본값 kkma로 설정)")
         konlpy_tag = 'kkma'
 
-    pos2 = []
-    for idx, word in enumerate(pos):
-        # print(idx, word[0]) if word[1] in ['VXV'] else ()
-        ko_wclass = word_class[konlpy_tag][translate_level-1][word[1]] if word[1] not in ['EOS','SOS'] else word[1]
-        pos2.append((word[0], ko_wclass))
-
-    return pos2
+    return [(morp, word_class[konlpy_tag][translate_level-1][wclass]) for morp, wclass in pos]
 
 
-def tag2morp(wclass, translate_level=3, konlpy_tag='kkma'):
+def wclass_ko(wclass, translate_level=3, konlpy_tag='kkma'):
     if not 1 <= translate_level <= 3:
         print('Error: translate_level의 설정 범위는 1~3이다. (기본값 2로 설정)')
         translate_level = 3

@@ -8,7 +8,8 @@ import konlpy
 from konlpy.tag import Kkma, Okt
 
 from common.util import time
-from modules.translate_wclass import pos_ko, tag2morp
+from common.print import add_spaces_until_endline as line
+from modules.translate_wclass import pos_ko, wclass_ko
 from modules.make_sentence import pos_to_sentence
 
 MAX_LENGTH = 50
@@ -69,9 +70,9 @@ class Vocab:
     """
     def __init__(self, name, morps):
         self.name = name
-        self.morp2id = {}
-        self.morp2count = {}
-        self.id2morp = {0: "SOS", 1: "EOS"}
+        self.morp2id = {"[SOS]":{"[SOS]":0}, "[EOS]":{"[EOS]":1}}
+        self.morp2count = {"[SOS]":{"[SOS]":0}, "[EOS]":{"[EOS]":0}}
+        self.id2morp = {0: "[SOS]", 1: "[EOS]"}
         self.n_morps = 2  # SOS 와 EOS 포함
         self.addWords(morps)
 
@@ -137,6 +138,7 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
 
         morps = []
         for sentence in morps_sentences:
+            print(sentence)
             for morp_wclass_tuple in sentence:
                 morps.append(morp_wclass_tuple)
         morps = pos_ko(morps)
@@ -147,12 +149,12 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
             lang = Vocab("Korean", morps)
         if start_time != None: print(time.str_delta(start_time), "형태소 사전 만들기 완료!")
         
-        corpus = np.array([lang.morp2id[morp][wclass] if wclass not in ['[SOS]','[EOS]'] else wclass for morp, wclass in tqdm(morps)])
+        corpus = np.array([lang.morp2id[morp][wclass] for morp, wclass in tqdm(morps)])
         if start_time != None: print(time.str_delta(start_time), "데이터를 형태소 id로 표현 완료!")
         
         sentences_ids = []
         for sentence in morps_sentences:
-            sentence_ids = [lang.morp2id[morp][tag2morp(wclass)] for morp, wclass in sentence]
+            sentence_ids = [lang.morp2id[morp][wclass_ko(wclass)] for morp, wclass in sentence]
             sentences_ids.append(sentence_ids)
         
         if loaded_data:
@@ -203,8 +205,7 @@ def make_morps_sentences(texts, add_SOS=True, add_EOS=True, Okt_nomalize=True, d
                            "]+", flags=re.UNICODE)
 
     for idx, sentence in enumerate(texts):
-        sys.stdout.write(('\r%d / %d | %s' % (idx+1, len_text, (
-            sentence[:25]+'...' if len(sentence)>=25 else sentence).ljust(32))))
+        sys.stdout.write(line('\r%d / %d | %s' % (idx+1, len_text, sentence)))
         sys.stdout.flush()
         
         # 0. print() 못하는 이모티콘 삭제
@@ -238,13 +239,13 @@ def make_morps_sentences(texts, add_SOS=True, add_EOS=True, Okt_nomalize=True, d
         
         # 4. 형태소 분해 후 문장 단위로 쪼개서 저장
         pos = kkma.pos(normalized3)
+        if add_SOS: pos.insert(0, ('[SOS]','[SOS]'))
+        if add_EOS: pos.append( ('[EOS]','[EOS]') )
         splited_pos = split_pos_into_sentence(pos)
         if len(splited_pos) > 1: n_splited += 1
 
-        if add_SOS: morps_sentences.append(('[SOS]','[SOS]'))
         for pos in splited_pos:
             morps_sentences.append(pos)
-        if add_EOS: morps_sentences.append(('[EOS]','[EOS]'))
 
     return morps_sentences
 
