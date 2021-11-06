@@ -42,14 +42,14 @@ class LSTM(nn.Module):
         self.load_state_dict(save["state_dict"])
         return save["epoch"], save["ppl"]
 
-    def generate(self, start_id, skip_ids=None, sample_size=100, one_sentence=False, id2morp=None):
+    def generate(self, start_id, skip_ids=None, sample_size=100, one_sentence=False, id2morp=None, end='.'):
         word_ids = [start_id]
-
+        
         x = start_id
         while len(word_ids) < sample_size:
-            x = torch.tensor(x).reshape(1, 1)
+            x = torch.tensor([x]).reshape(1, 1)
             score = self.forward(x).flatten()
-            p = F.softmax(score).flatten()
+            p = F.softmax(score, dim=0).flatten()
 
             sampled = p.multinomial(num_samples=1, replacement=True)
             if (skip_ids is None) or (sampled not in skip_ids):
@@ -57,7 +57,7 @@ class LSTM(nn.Module):
                 word_ids.append(int(x))
 
             if one_sentence and id2morp is not None:
-                if id2morp[int(x)] == '.':
+                if id2morp[int(x)] == end:
                     return word_ids
                 else:
                     continue

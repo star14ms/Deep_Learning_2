@@ -116,7 +116,7 @@ def pos_to_sentence(pos, verbose=False):
     return sentence
 
 
-def generate_sentence(start_words, model, morp2id, id2morp, one_sentence=True, verbose=False):
+def generate_sentence(start_words, model, morp2id, id2morp, one_sentence=True, verbose=False, end='.'):
     pos = pos_ko(kkma.pos(start_words))
 
     try:
@@ -125,14 +125,27 @@ def generate_sentence(start_words, model, morp2id, id2morp, one_sentence=True, v
         print('그 말은 단어 사전에 아직 없어 ㅜㅜ')
         return
         
-    if len(start_ids) == 1:
+    if len(start_ids) == 0:
         word_ids = model.generate(
-            start_ids[-1], one_sentence=one_sentence, id2morp=id2morp)
+            [0], one_sentence=one_sentence, id2morp=id2morp, end=end)
+    elif len(start_ids) == 1:
+        word_ids = model.generate(
+            start_ids[-1], one_sentence=one_sentence, id2morp=id2morp, end=end)
     else:
         for x in start_ids[:-1]:
-            x = np.array(x).reshape(1, 1)
-            model.predict(x)
+            try:
+                x = np.array(x).reshape(1, 1)
+                model.predict(x)
+            except AttributeError: 
+                import torch
+                x = torch.tensor(x).reshape(1, 1)
+                model(x)
         word_ids = start_ids[:-1] + model.generate(
-            start_ids[-1], one_sentence=one_sentence, id2morp=id2morp)
+            start_ids[-1], one_sentence=one_sentence, id2morp=id2morp, end=end)
+
+    try:
+        model.reset_state()
+    except AttributeError:
+        pass
 
     return ids_to_sentence(word_ids, morp2id, id2morp, verbose=verbose)

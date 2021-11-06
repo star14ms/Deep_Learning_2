@@ -484,6 +484,10 @@ kkma_word_class = [kkma_word_class_lv1, kkma_word_class_lv2, kkma_word_class_lv3
 
 word_class = {'komoran': komoran_word_class, 'kkma': kkma_word_class}
 
+for class_dict in komoran_word_class + kkma_word_class:
+    class_dict['[SOS]'] = '[시작]'
+    class_dict['[EOS]'] = '[끝]'
+
 
 def pos_ko(pos, translate_level=3, konlpy_tag='kkma'):
     if not 1 <= translate_level <= 3:
@@ -498,7 +502,8 @@ def pos_ko(pos, translate_level=3, konlpy_tag='kkma'):
     pos2 = []
     for idx, word in enumerate(pos):
         # print(idx, word[0]) if word[1] in ['VXV'] else ()
-        pos2.append( (word[0], word_class[konlpy_tag][translate_level-1][word[1]]) )
+        ko_wclass = word_class[konlpy_tag][translate_level-1][word[1]] if word[1] not in ['EOS','SOS'] else word[1]
+        pos2.append((word[0], ko_wclass))
 
     return pos2
 

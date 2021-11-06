@@ -7,7 +7,7 @@ from modules.better_rnnlm import BetterRnnlm
 
 
 class BetterRnnlmGen(BetterRnnlm):
-    def generate(self, start_id, skip_ids=None, sample_size=100, one_sentence=False, id2morp=None):
+    def generate(self, start_id, skip_ids=None, sample_size=100, one_sentence=False, id2morp=None, end='.'):
         word_ids = [start_id]
 
         x = start_id
@@ -22,7 +22,7 @@ class BetterRnnlmGen(BetterRnnlm):
                 word_ids.append(int(x))
 
             if one_sentence and id2morp is not None:
-                if id2morp[int(x)] == '.':
+                if id2morp[int(x)] == end:
                     return word_ids
                 else:
                     continue

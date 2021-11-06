@@ -42,30 +42,30 @@ class Vocab:
     """
     단어 사전
     ----------
-    `self.name`: 사전 이름 (`str`)
-    `self.morp2id`: 형태소를 id로 변환 (`dict`)
-    `self.morp2count`: 각 형태소가 말뭉치에서 몇 번 나왔는지 (`dict`)
-    `self.id2morp`: id를 형태소로 변환 (`dict`)
-    `self.n_morps`: 사전에 들어있는 형태소 총 개수 (`int`)
+        `self.name`: 사전 이름 (`str`)
+        `self.morp2id`: 형태소를 id로 변환 (`dict`)
+        `self.morp2count`: 각 형태소가 말뭉치에서 몇 번 나왔는지 (`dict`)
+        `self.id2morp`: id를 형태소로 변환 (`dict`)
+        `self.n_morps`: 사전에 들어있는 형태소 총 개수 (`int`)
 
     __init__ Parameters
     ----------
-    `name`: 단어 사전 이름 (`str`)
-
-    `morps`: 형태소 말뭉치 (konlpy kkma.pos() 형식) (`list[tuple(str, str)]`)
-
+        `name`: 단어 사전 이름 (`str`)
+    
+        `morps`: 형태소 말뭉치 (konlpy kkma.pos() 형식) (`list[tuple(str, str)]`)
+    
     Example
     ----------
-    self.morp2id[morp][word_class] = id
-
-    self.morp2count[morp][word_class] = count
-
-    self.id2morp[id] = 형태소
-
+        self.morp2id[morp][word_class] = id
+    
+        self.morp2count[morp][word_class] = count
+    
+        self.id2morp[id] = 형태소
+    
     Functions
     ----------
-    `addSentence()`: 문장 형태소 분석하여 형태소 사전에 추가
-    `addWords()`: 형태소 말뭉치 사전에 추가
+        `addSentence()`: 문장 형태소 분석하여 형태소 사전에 추가
+        `addWords()`: 형태소 말뭉치 사전에 추가
     """
     def __init__(self, name, morps):
         self.name = name
@@ -101,7 +101,7 @@ class Vocab:
 
 
 def preprocess(texts, loaded_data=None, language='Korean', start_time=None, 
-    Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True
+    add_SOS=True, add_EOS=True, Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True
 ) -> (tuple):
     """
     데이터 전처리
@@ -109,22 +109,22 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
 
     Parameters
     ----------
-    `texts`: 전처리할 문장들 (`list[str]`)
-    `loaded_data`: 전처리된 데이터 파일 로드한 것 (`dict`)
-    `start_time`: 시작 시간 (`float` `time.time()`)
-    `Okt_nomalize`: konlpy okt.nomalize() 사용 여부 (`bool`)
-    `del_short_sound`: 미완성 글자 지우기 여부 (`bool`)
-    `del_repeated_latter`: 반복 글자 지우기 여부 (`bool`)
+        `texts`: 전처리할 문장들 (`list[str]`)
+        `loaded_data`: 전처리된 데이터 파일 로드한 것 (`dict`)
+        `start_time`: 시작 시간 (`float` `time.time()`)
+        `Okt_nomalize`: konlpy okt.nomalize() 사용 여부 (`bool`)
+        `del_short_sound`: 미완성 글자 지우기 여부 (`bool`)
+        `del_repeated_latter`: 반복 글자 지우기 여부 (`bool`)
 
     Return
     ----------
-    return `Vocab(Class), Corpus(np.ndarray[n]), Sentences_ids(list)`
+        return `Vocab(Class), Corpus(np.ndarray[n]), Sentences_ids(list)`
 
-    `Vocab`: 단어 사전
+        `Vocab`: 단어 사전
 
-    `Corpus`: 말뭉치를 형태소 분해한 id뭉치
+        `Corpus`: 말뭉치를 형태소 분해한 id뭉치
 
-    `Sentences_ids`: 문장의 형태소 id 리스트 list[sentence1_ids, sentence2_ids, ...]
+        `Sentences_ids`: 문장의 형태소 id 리스트 list[sentence1_ids, sentence2_ids, ...]
     """
 
     language = language.lower()
@@ -132,7 +132,7 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
         lang, loaded_corpus, loaded_sentence_ids = loaded_data.values()
 
     if language == 'korean':
-        morps_sentences = make_morps_sentences(texts, Okt_nomalize, del_short_sound, del_repeated_latter)
+        morps_sentences = make_morps_sentences(texts, add_SOS, add_EOS, Okt_nomalize, del_short_sound, del_repeated_latter)
         if start_time != None: print(time.str_delta(start_time), "형태소 분해 완료!")
 
         morps = []
@@ -147,7 +147,7 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
             lang = Vocab("Korean", morps)
         if start_time != None: print(time.str_delta(start_time), "형태소 사전 만들기 완료!")
         
-        corpus = np.array([lang.morp2id[morp][wclass] for morp, wclass in tqdm(morps)])
+        corpus = np.array([lang.morp2id[morp][wclass] if wclass not in ['[SOS]','[EOS]'] else wclass for morp, wclass in tqdm(morps)])
         if start_time != None: print(time.str_delta(start_time), "데이터를 형태소 id로 표현 완료!")
         
         sentences_ids = []
@@ -161,22 +161,22 @@ def preprocess(texts, loaded_data=None, language='Korean', start_time=None,
             return (lang, corpus, sentences_ids)
 
 
-def make_morps_sentences(texts, Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True) -> (list):
+def make_morps_sentences(texts, add_SOS=True, add_EOS=True, Okt_nomalize=True, del_short_sound=True, del_repeated_latter=True) -> (list):
     """
     형태소 분석된 문장 list 만들기
 
     Parameters
     ----------
-    `texts`: 전처리할 문장들 (`list[str]`)
-    `Okt_nomalize`: konlpy okt.nomalize() 사용 여부 (`bool`)
-    `del_short_sound`: 미완성 글자 지우기 여부 (`bool`)
-    `del_repeated_latter`: 반복 글자 지우기 여부 (`bool`)
+        `texts`: 전처리할 문장들 (`list[str]`)
+        `Okt_nomalize`: konlpy okt.nomalize() 사용 여부 (`bool`)
+        `del_short_sound`: 미완성 글자 지우기 여부 (`bool`)
+        `del_repeated_latter`: 반복 글자 지우기 여부 (`bool`)
 
     Return
     ----------
-    `list[kkma.pos(sent1), kkma.pos(sent2), ...]`
+        `list[kkma.pos(sent1), kkma.pos(sent2), ...]`
 
-    `list[list[tuple(str, str)]]`
+        `list[list[tuple(str, str)]]`
     """
     len_text = len(texts)
     morps_sentences = []
@@ -241,8 +241,10 @@ def make_morps_sentences(texts, Okt_nomalize=True, del_short_sound=True, del_rep
         splited_pos = split_pos_into_sentence(pos)
         if len(splited_pos) > 1: n_splited += 1
 
+        if add_SOS: morps_sentences.append(('[SOS]','[SOS]'))
         for pos in splited_pos:
             morps_sentences.append(pos)
+        if add_EOS: morps_sentences.append(('[EOS]','[EOS]'))
 
     return morps_sentences
 
@@ -255,8 +257,8 @@ def nomalize_short_sounds(sentence: str, skip_num: int = 30, max_n_short: int = 
 
     Parameters
     ----------
-    `skip_num`: 미완성 글자가 총합 n개를 넘으면 return False
-    `max_n_short`: 미완성 글자를 연속 n개까지만 남기고 나머지는 삭제
+        `skip_num`: 미완성 글자가 총합 n개를 넘으면 return False
+        `max_n_short`: 미완성 글자를 연속 n개까지만 남기고 나머지는 삭제
     """
     short_sounds = CHOSUNG_LIST + JUNGSUNG_LIST + JONGSUNG_LIST
     n_short_sound = 0
@@ -281,8 +283,8 @@ def delete_repeated_latter(sentence: str, len_kkma_delay: int = 18) -> (str):
     """
     Parameters
     ----------
-    `skip_num`: 미완성 글자가 총합 n개를 넘으면 return False
-    `len_kkma_delay`: konlpy kkma 형태소 분석을 지연시키는 연속된 글자 최소 길이
+        `skip_num`: 미완성 글자가 총합 n개를 넘으면 return False
+        `len_kkma_delay`: konlpy kkma 형태소 분석을 지연시키는 연속된 글자 최소 길이
     """
     repeator_size = 0
     while True:
@@ -320,8 +322,8 @@ def split_pos_into_sentence(pos, MAX_LENGTH=MAX_LENGTH) -> (list):
     
     Parameters
     ----------
-    `pos`: konlpy kkma.pos() return 값 (list[str, str])
-    `MAX_LENGTH`: 형태소 개수 MAX_LENGTH 이내에서 문장 합쳐서 한 문장으로 취급
+        `pos`: konlpy kkma.pos() return 값 (list[str, str])
+        `MAX_LENGTH`: 형태소 개수 MAX_LENGTH 이내에서 문장 합쳐서 한 문장으로 취급
     """
     if len(pos) > MAX_LENGTH:
         

@@ -2,13 +2,15 @@
 from common.np import *
 from modules.rnnlm_gen import BetterRnnlmGen
 import pickle
-from konlpy.tag import Kkma
 from modules.make_sentence import generate_sentence
 import argparse
 
+from model import LSTM, Config
+
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--load_model", default='ln_3680000 lt_5h59m43s ppl_266.3 BetterRnnlm params', type=str, required=False,
-                    help="path of model (.pkl) you can got after running 3_train_better_rnnlm.py")
+parser.add_argument("--load_model", default='LSTM ep_6 ppl_480.8.pth', type=str, required=False,
+                    help="path of model (.pkl, .pth) you can got after running 3_train_better_rnnlm.py or train.py")
 parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
                     help="to save model directory")
 parser.add_argument("--wordvec_size", default=512, type=int, required=False,
@@ -19,16 +21,26 @@ parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corp
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")
+parser.add_argument("--config", default="LSTM_config.json", type=str, required=False,
+                    help="config file")
 args = parser.parse_args()
 
 ##### 변수 선언 #########################################################################################################
 
 with open(args.data_file, 'rb') as f:
     (vocab, _, _) = pickle.load(f).values()
-vocab_size = len(vocab.id2morp)
+vocab_size = vocab.n_morps
 
-model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
-model.load_params(args.load_model, args.pkl_dir)
+if args.config:
+    config = Config.load(args.config)
+    config.vocab_size = vocab_size
+    model = LSTM(config)
+    model.load(args.load_model)
+else:
+    model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
+    model.load_params(args.load_model, args.pkl_dir)
+
+end = ['[EOS]']
 
 ##### main #####################################################################################################################
 
@@ -45,6 +57,6 @@ if __name__ == '__main__':
             # print('영어는 인식 못해 ㅜㅜ')
             # continue
         
-        text = generate_sentence(start_words, model, vocab.morp2id, vocab.id2morp, args.one_sentence, verbose=False)
+        text = generate_sentence(start_words, model, vocab.morp2id, vocab.id2morp, args.one_sentence, verbose=False, end=end)
         if text is not None: print('\n'+text)
-        model.reset_state()
+
