@@ -1,0 +1,5 @@
+{
+    "wordvec_size": 512,
+    "hidden_size": 512,
+    "dropout": 0.5
+}

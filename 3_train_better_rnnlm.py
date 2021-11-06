@@ -1,8 +1,8 @@
 # coding: utf-8
-from common import config
+from common.config import GPU
 # GPU에서 실행할 경우 주석 해제 (cupy)
 # ==============================================
-# config.GPU = True
+# GPU = True
 # ==============================================
 from common.optimizer import optimizers
 from common.trainer import RnnlmTrainer
@@ -11,19 +11,17 @@ from modules.better_rnnlm import BetterRnnlm
 import pickle
 import time as t
 import argparse
-
+from config import Config
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
-parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
+parser.add_argument("--save_dir", default="saved_models", type=str, required=False,
                     help="to save model directory")
 parser.add_argument("--load_model", default=None, type=str, required=False,
                     help="path of model (.pkl)")
-parser.add_argument("--wordvec_size", default=512, type=int, required=False,
-                    help="wordvec_size")
-parser.add_argument("--hidden_size", default=512, type=int, required=False,
-                    help="hidden_size")
+parser.add_argument("--config", default="config_Rnnlm.json", type=str, required=False,
+                    help="config file")
 parser.add_argument("--batch_size", default=32, type=int, required=False,
                     help="batch_size")
 parser.add_argument("--time_size", default=50, type=int, required=False,
@@ -34,8 +32,6 @@ parser.add_argument("--max_epoch", default=20, type=int, required=False,
                     help="max_epoch")
 parser.add_argument("--max_grad", default=0.25, type=float, required=False,
                     help="max_grad")
-parser.add_argument("--dropout", default=0.5, type=float, required=False,
-                    help="dropout")
 parser.add_argument("--optimizer", default='sgd', type=str, required=False,
                     help="sgd | momentum | nesterov | adagrad | rmsprop | adam ")
 args = parser.parse_args()
@@ -48,14 +44,11 @@ ylim = 500
 
 
 # 하이퍼 파라미터 설정
-wordvec_size = args.wordvec_size # 500
-hidden_size = args.hidden_size # 500
 batch_size = args.batch_size # 20
 time_size = args.time_size # 40
 lr = args.lr # 10.0
 max_epoch = args.max_epoch # 20
 max_grad = args.max_grad # 0.25
-dropout = args.dropout # 0.5
 
 
 # 학습할 데이터 읽어 학습/검증/테스트 데이터로 나누기
@@ -70,20 +63,20 @@ corpus_val = corpus_all[len_train : len_train+len_val]
 corpus_test = corpus_all[len_train+len_val: ]
 print("\ntrain {}, val {}, test {} data".format(len(corpus_train), len(corpus_val), len(corpus_test)))
 
-
-if config.GPU:
+if GPU:
     corpus_train = to_gpu(corpus_train)
     corpus_val = to_gpu(corpus_val)
     corpus_test = to_gpu(corpus_test)
 
-vocab_size = vocab.n_morps ### len(morp_to_id) < len(id_to_morp)
-print("형태소 사전 단어 수:", vocab_size)
 xs = corpus_train[:-1]
 ts = corpus_train[1:]
 
-
 # 신경망과 훈련 모듈 만들거나 가져오기 (그래프 출력)
-model = BetterRnnlm(vocab_size, wordvec_size, hidden_size, dropout) 
+config = Config.load(args.config)
+config.vocab_size = vocab.n_morps
+print("형태소 사전 단어 수:", vocab.n_morps)
+
+model = BetterRnnlm(config) 
 optimizer = optimizers[args.optimizer.lower()](lr) ### Adam -> lr: 0.0001
 trainer = RnnlmTrainer(model, optimizer)
 

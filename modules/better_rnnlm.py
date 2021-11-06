@@ -15,8 +15,12 @@ class BetterRnnlm(BaseModel):
      [2] Using the Output Embedding to Improve Language Models (https://arxiv.org/abs/1608.05859)
      [3] Tying Word Vectors and Word Classifiers (https://arxiv.org/pdf/1611.01462.pdf)
     '''
-    def __init__(self, vocab_size=10000, wordvec_size=500,
-                 hidden_size=500, dropout_ratio=0.5):
+    def __init__(self, config):
+        vocab_size = config.vocab_size
+        wordvec_size = config.wordvec_size
+        hidden_size = config.hidden_size
+        dropout_ratio = config.dropout 
+
         V, D, H = vocab_size, wordvec_size, hidden_size
         rn = np.random.randn
 

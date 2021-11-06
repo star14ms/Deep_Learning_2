@@ -5,40 +5,37 @@ import pickle
 from modules.make_sentence import generate_sentence
 import argparse
 
-from model import LSTM, Config
+from model import LSTM
+from config import Config
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--load_model", default='LSTM ep_6 ppl_480.8.pth', type=str, required=False,
+parser.add_argument("--load_model", default='saved_models/LSTM ep_6 ppl_480.8.pth', type=str, required=False,
                     help="path of model (.pkl, .pth) you can got after running 3_train_better_rnnlm.py or train.py")
-parser.add_argument("--pkl_dir", default="saved_pkls", type=str, required=False,
-                    help="to save model directory")
-parser.add_argument("--wordvec_size", default=512, type=int, required=False,
-                    help="wordvec_size")
-parser.add_argument("--hidden_size", default=512, type=int, required=False,
-                    help="hidden_size")
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
+parser.add_argument("--config", default="config_LSTM.json", type=str, required=False,
+                    help="config file")
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")
-parser.add_argument("--config", default="LSTM_config.json", type=str, required=False,
-                    help="config file")
+parser.add_argument("--save_dir", default="saved_models", type=str, required=False,
+                    help="to save model directory")
 args = parser.parse_args()
 
 ##### 변수 선언 #########################################################################################################
 
 with open(args.data_file, 'rb') as f:
     (vocab, _, _) = pickle.load(f).values()
-vocab_size = vocab.n_morps
 
-if args.config:
-    config = Config.load(args.config)
-    config.vocab_size = vocab_size
+config = Config.load(args.config)
+config.vocab_size = vocab.n_morps
+
+if "LSTM" in args.config:
     model = LSTM(config)
     model.load(args.load_model)
 else:
-    model = BetterRnnlmGen(vocab_size, args.wordvec_size, args.hidden_size)
-    model.load_params(args.load_model, args.pkl_dir)
+    model = BetterRnnlmGen(config)
+    model.load_params(args.load_model, args.save_dir)
 
 end = ['[EOS]']
 

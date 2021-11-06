@@ -3,5 +3,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-saved_pkls
-*.pth
+saved_pkls/*
+saved_models/*

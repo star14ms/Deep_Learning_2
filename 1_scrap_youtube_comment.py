@@ -136,7 +136,7 @@ comment_block = 'content-text'
 
 # 저장할 txt파일 이름 (댓글, 동영상 링크 저장)
 # day = dt.date.today().strftime('%y%m%d')
-day = "211101"
+day = "211101~06"
 save_txt_name = f'data/YT_cmts_{day}'
 urls_txt_name = f'data/YT_cmts_urls_{day}'
 

@@ -16,15 +16,15 @@ import argparse
 start_time = t.time()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config", default="LSTM_config.json", type=str, required=False,
+parser.add_argument("--config", default="config_LSTM.json", type=str, required=False,
                     help="config file")
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--epoch", default=3, type=int, required=False,
                     help="epoch")
 parser.add_argument("--batch", default=32, type=int, required=False,
                     help="batch")
-parser.add_argument("--load_model", default="LSTM ep_3 ppl_482.7.pth", type=str, required=False,
+parser.add_argument("--load_model", default=None, type=str, required=False,
                     help="path of trained model (.pth)")
 args = parser.parse_args()
 
@@ -144,7 +144,7 @@ for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
     with torch.no_grad():
         ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
         
-    model.save(epoch, ppl, f"{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
+    model.save(epoch, ppl, f"saved_modles/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
     print('-' * 50)
 
 with torch.no_grad():

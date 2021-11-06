@@ -8,9 +8,9 @@ import random
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_path", default='data/YT_cmts_211101.txt', type=str, required=False,
+parser.add_argument("--data_path", default='data/YT_cmts_211101~06.txt', type=str, required=False,
                     help="path of youtube comments .txt file you can got after running 1_scrap_youtube_comment.py")
-parser.add_argument("--save_path", default='saved_pkls/YT_cmts_211101_vocab_corpus', type=str, required=False,
+parser.add_argument("--save_path", default='saved_pkls/YT_cmts_211101~06_vocab_corpus', type=str, required=False,
                     help="to save model directory")
 parser.add_argument("--load_path", default=None, type=str, required=False,
                     help="to save model directory")
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     print(corpus[:100])
     for i in range(20):
         print(i, vocab.id2morp[i])
-    
+
     while input() not in ['break','exit','/b','/e']: 
     # for i, sent_ids in enumerate(sentences_ids):
         # if input() in ['break','exit','/b','/e']: break
