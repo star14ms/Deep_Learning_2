@@ -169,7 +169,7 @@ def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, us
         sys.stdout.write('\r%d / %d' % (iters, max_iters))
         sys.stdout.flush()
 
-    ppl = np.exp(total_loss / max_iters).item()
+    ppl = np.exp(total_loss.cpu() / max_iters).item()
 
     print()
     print(f'{data_type} perplexity: ', ppl)

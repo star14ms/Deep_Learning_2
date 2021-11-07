@@ -10,6 +10,7 @@ import torch.nn as nn
 import time as t
 import pickle
 import argparse
+import os
 
 ################################################################################################################################
 
@@ -26,6 +27,8 @@ parser.add_argument("--batch", default=32, type=int, required=False,
                     help="batch")
 parser.add_argument("--load_model", default=None, type=str, required=False,
                     help="path of trained model (.pth)")
+parser.add_argument("--save_dir", default='saved_models', type=str, required=False,
+                    help="path to save model (.pth)")
 args = parser.parse_args()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -35,6 +38,7 @@ config = args.config
 data_file = args.data_file
 n_epoch = args.epoch
 n_batch = args.batch
+save_dir = args.save_dir
 
 config = Config.load(config)
 n_layers = config.n_layers
@@ -125,6 +129,14 @@ class Trainer:
         return torch.exp(torch.tensor([total_loss / max_iters])).item()
 
 
+def makedirs(path): 
+   try: 
+        os.makedirs(path) 
+   except OSError: 
+       if not os.path.isdir(path): 
+           raise
+
+
 train_data, val_data, test_data = split_data(corpus)
 
 model = LSTM(config)
@@ -134,6 +146,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=1e-0, momentum=0.9, nesterov=
 trainer = Trainer(model, train_data, loss_fn, optimizer, n_batch, time_size, device, start_time)
 
 print('-' * 50)
+makedirs(save_dir)
 for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
     print(f'Epoch {epoch}')
 
@@ -143,8 +156,8 @@ for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
     model.eval()
     with torch.no_grad():
         ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
-        
-    model.save(epoch, ppl, f"saved_modles/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
+    
+    model.save(epoch, ppl, f"{save_dir}/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
     print('-' * 50)
 
 with torch.no_grad():
