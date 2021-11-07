@@ -22,7 +22,7 @@ parser.add_argument("--config", default="config_LSTM.json", type=str, required=F
                     help="config file")
 parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
-parser.add_argument("--epoch", default=3, type=int, required=False,
+parser.add_argument("--epoch", default=5, type=int, required=False,
                     help="epoch")
 parser.add_argument("--batch", default=32, type=int, required=False,
                     help="batch")
@@ -161,7 +161,6 @@ for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
     with torch.no_grad():
         valid_ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
     
-    plot_loss_graph(trainer.ppl_list, ylim=1000)
     model.save(epoch, valid_ppl, trainer.ppl_list, f"{save_dir}/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
     print('-' * 50)
 

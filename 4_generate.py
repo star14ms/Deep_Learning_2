@@ -21,6 +21,8 @@ parser.add_argument("--save_dir", default="saved_models", type=str, required=Fal
                     help="to save model directory")
 args = parser.parse_args()
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 ##### 변수 선언 #########################################################################################################
 
 with open(args.data_file, 'rb') as f:
@@ -31,7 +33,7 @@ config.vocab_size = vocab.n_morps
 
 if "LSTM" in args.config:
     model = LSTM(config)
-    model.load(args.load_model, torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    model.load(args.load_model, torch.device(device))
 else:
     model = BetterRnnlmGen(config)
     model.load_params(args.load_model, args.save_dir)
@@ -40,7 +42,6 @@ end = '[EOS]'
 
 ##### main #####################################################################################################################
 
-
 if __name__ == '__main__':
     print('문장 생성봇!')
 
@@ -48,11 +49,6 @@ if __name__ == '__main__':
         print('-' * 50)
         start_words = input('시작 단어: ')
         if start_words in ['/b','/ㅠ','break','exit']: break
-    
-        # if is_English_exist(start_words):
-            # print('영어는 인식 못해 ㅜㅜ')
-            # continue
-        
+
         text = generate_sentence(start_words, model, vocab.morp2id, vocab.id2morp, args.one_sentence, verbose=False, end=end)
         if text is not None: print('\n'+text)
-
