@@ -137,10 +137,18 @@ def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, us
         tensor, dtype = torch, torch.long
     else:
         tensor, dtype = np, np.int32
+    
+    try:
+        device = ('cuda' if next(model.parameters()).is_cuda else 'cpu')
+    except: 
+        device = 'cpu'
 
     for iters in range(max_iters):
         xs = tensor.zeros((batch_size, time_size), dtype=dtype)
         ts = tensor.zeros((batch_size, time_size), dtype=dtype)
+        if 'cuda' in device:
+            xs = xs.to(device)
+            ts = ts.to(device)
         time_offset = iters * time_size
         offsets = [time_offset + (i * jump) for i in range(batch_size)]
         for t in range(time_size):
