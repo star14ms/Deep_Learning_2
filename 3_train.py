@@ -3,6 +3,7 @@ from common.config import Config
 from common.util import eval_perplexity, time
 from common.print import add_spaces_until_endline as line
 from modules.preprocess import MAX_LENGTH
+from modules.plot import plot_loss_graph
 
 from tqdm import tqdm
 import torch
@@ -29,6 +30,8 @@ parser.add_argument("--load_model", default=None, type=str, required=False,
                     help="path of trained model (.pth)")
 parser.add_argument("--save_dir", default='saved_models', type=str, required=False,
                     help="path to save model (.pth)")
+parser.add_argument("--colab", default=False, type=bool, required=False,
+                    help="is running on colab")
 args = parser.parse_args()
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -39,6 +42,7 @@ data_file = args.data_file
 n_epoch = args.epoch
 n_batch = args.batch
 save_dir = args.save_dir
+colab = args.colab
 
 config = Config.load(config)
 n_layers = config.n_layers
@@ -122,7 +126,7 @@ class Trainer:
                 ppl = torch.exp(torch.tensor([local_loss / print_every])).item()
                 elapsed = time.str_delta(self.start_time, join=':')
                 string = f'\r{elapsed} | iter {iter}/{max_iters} | ppl %.1f' % ppl
-                print(line(string))
+                print(line(string) if not colab else string)
                 trainer.ppl_list.append(float(ppl))
                 local_loss = 0
 
@@ -151,13 +155,14 @@ for epoch in range(last_epoch+1, last_epoch+n_epoch+1):
     print(f'Epoch {epoch}')
 
     ppl = trainer.train_epoch()
-    print('train perplexity: ', ppl) # perplexity: 다음에 올 단어 후보 수
+    print('train perplexity: ', round(ppl, 2)) # perplexity: 다음에 올 단어 후보 수
 
     model.eval()
     with torch.no_grad():
-        ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
+        valid_ppl = eval_perplexity(model, val_data, n_batch, time_size, loss_fn, use_torch=True, data_type="valid")
     
-    model.save(epoch, ppl, f"{save_dir}/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
+    plot_loss_graph(trainer.ppl_list, ylim=1000)
+    model.save(epoch, valid_ppl, trainer.ppl_list, f"{save_dir}/{model.__class__.__name__} ep_{epoch} ppl_%.1f.pth" % ppl)
     print('-' * 50)
 
 with torch.no_grad():

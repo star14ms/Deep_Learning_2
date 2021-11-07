@@ -29,17 +29,18 @@ class LSTM(nn.Module):
 
         return y
 
-    def save(self, epoch, ppl, path):
+    def save(self, epoch, valid_ppl, ppl_list, path):
         torch.save({
         "epoch": epoch,
-        "ppl": ppl,
-        "state_dict": self.state_dict()
+        "ppl": valid_ppl,
+        "ppl_list": ppl_list,
+        "state_dict": self.state_dict(),
     }, path)
     
-    def load(self, path):
-        save = torch.load(path)
+    def load(self, path, map_location=None):
+        save = torch.load(path, map_location)
         self.load_state_dict(save["state_dict"])
-        return save["epoch"], save["ppl"]
+        return save["epoch"], save["ppl"], save["ppl_list"]
 
     def generate(self, start_id, skip_ids=None, sample_size=100, one_sentence=False, id2morp=None, end='.'):
         word_ids = [start_id]

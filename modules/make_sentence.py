@@ -127,7 +127,7 @@ def generate_sentence(start_words, model, morp2id, id2morp, one_sentence=True, v
         
     if len(start_ids) == 0:
         word_ids = model.generate(
-            [0], one_sentence=one_sentence, id2morp=id2morp, end=end)
+            0, one_sentence=one_sentence, id2morp=id2morp, end=end)
     elif len(start_ids) == 1:
         word_ids = model.generate(
             start_ids[-1], one_sentence=one_sentence, id2morp=id2morp, end=end)

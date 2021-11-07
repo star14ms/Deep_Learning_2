@@ -166,13 +166,13 @@ def eval_perplexity(model, corpus, batch_size=20, time_size=35, loss_fn=None, us
                 loss = model.forward(xs, ts)
         total_loss += loss
 
-        sys.stdout.write('\r%d / %d' % (iters, max_iters))
+        sys.stdout.write('\r%d / %d' % (iters+1, max_iters))
         sys.stdout.flush()
 
     ppl = np.exp(total_loss.cpu() / max_iters).item()
 
     print()
-    print(f'{data_type} perplexity: ', ppl)
+    print(f'{data_type} perplexity: ', round(ppl, 2))
     return ppl
 
 

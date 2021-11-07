@@ -6,14 +6,14 @@ from modules.rnnlm_gen import BetterRnnlmGen
 from modules.make_sentence import generate_sentence
 import pickle
 import argparse
-
+import torch
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--load_model", default='saved_models/LSTM ep_6 ppl_480.8.pth', type=str, required=False,
+parser.add_argument("--load_model", default='saved_models/LSTM ep_10 ppl_213.5.pth', type=str, required=False,
                     help="path of model (.pkl, .pth) you can got after running 3_train_better_rnnlm.py or train.py")
 parser.add_argument("--config", default="config_LSTM.json", type=str, required=False,
                     help="config file")
-parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101_vocab_corpus.pkl", type=str, required=False,
+parser.add_argument("--data_file", default="saved_pkls/YT_cmts_211101~06_vocab_corpus.pkl", type=str, required=False,
                     help="path of .pkl file you can got after running 2_preprocess.py")
 parser.add_argument("--one_sentence", default=True, type=bool, required=False,
                     help="generate one sentence or 100형태소")
@@ -31,12 +31,12 @@ config.vocab_size = vocab.n_morps
 
 if "LSTM" in args.config:
     model = LSTM(config)
-    model.load(args.load_model)
+    model.load(args.load_model, torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 else:
     model = BetterRnnlmGen(config)
     model.load_params(args.load_model, args.save_dir)
 
-end = ['[EOS]']
+end = '[EOS]'
 
 ##### main #####################################################################################################################
 
